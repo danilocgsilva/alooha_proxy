@@ -5,64 +5,74 @@ const app = express();
 
 app.use(express.raw({ type: "*/*" }));
 
-const OLLAMA_URL = "http://ollama:11434";
+const OLLAMA_URL = "http://host.docker.internal:11434";
 
 type Metric = {
   path: string;
   method: string;
-  time: number;
+  // time: number;
   bytes: number;
   status: number;
 };
 
 const metrics: Metric[] = [];
 
-app.all("*", async (req, res) => {
-  if (req.path === "/metrics") {
-    return res.json(metrics);
-  }
-
-  const start = Date.now();
-
+app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
 
-  const { body, statusCode, headers } = await request(targetUrl, {
-    method: req.method,
-    headers: {
-      ...req.headers,
-      host: undefined, // avoid forwarding host
-    },
-    body: req.body,
-  });
+  try {
+    const headers = { ...req.headers };
 
-  res.status(statusCode);
+    delete headers.host;
+    delete headers["content-length"];
+    delete headers.connection;
 
-  for (const [key, value] of Object.entries(headers)) {
-    if (value) res.setHeader(key, value as string);
-  }
-
-  let totalBytes = 0;
-
-  // Stream data
-  body.on("data", (chunk: Buffer) => {
-    totalBytes += chunk.length;
-  });
-
-  body.pipe(res);
-
-  body.on("end", () => {
-    const elapsed = Date.now() - start;
-
-    metrics.push({
-      path: req.path,
+    const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
-      time: elapsed,
-      bytes: totalBytes,
-      status: statusCode,
+      headers,
+      body: req.body && req.body.length ? req.body : undefined,
     });
-  });
+
+    res.status(statusCode);
+
+    for (const [key, value] of Object.entries(upstreamHeaders)) {
+      if (value) res.setHeader(key, value as string);
+    }
+
+    let totalBytes = 0;
+
+    body.on("data", (chunk: Buffer) => {
+      totalBytes += chunk.length;
+    });
+
+    body.on("error", (err) => {
+      console.error("Stream error:", err);
+      res.destroy(err);
+    });
+
+    res.on("close", () => {
+      body.destroy();
+    });
+
+    body.pipe(res);
+
+    body.on("end", () => {
+      metrics.push({
+        path: req.path,
+        method: req.method,
+        bytes: totalBytes,
+        status: statusCode,
+      });
+    });
+
+  } catch (err) {
+    console.error("Proxy error:", err);
+    res.status(502).json({ error: "Bad Gateway" });
+  }
 });
 
-app.listen(8000, () => {
-  console.log("Proxy running on :8000");
+const portToServe: Number = 11001;
+
+app.listen(portToServe, () => {
+  console.log(`Proxy running on :${portToServe.toString()}`);
 });
