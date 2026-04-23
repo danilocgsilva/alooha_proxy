@@ -1,0 +1,13 @@
+services:
+  alooha_proxy:
+    build:
+      context: .
+    container_name: alooha_proxy
+    volumes:
+      - './app:/app'
+    ports:
+      - "8198:8000"
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
+    working_dir: /app
+
