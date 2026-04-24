@@ -4,7 +4,7 @@ services:
       context: .
     container_name: alooha_proxy
     volumes:
-      - './app:/app'
+      - '.:/app'
     ports:
       - "8198:8000"
       - "11001:11001"
