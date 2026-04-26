@@ -11,4 +11,24 @@ services:
     extra_hosts:
     - "host.docker.internal:host-gateway"
     working_dir: /app
-
+  alooha_proxy_db:
+    image: postgres:16
+    container_name: alooha_proxy_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: strongpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - './alooha_proxy_db_data:/var/lib/postgresql/data'
+  alooha_proxy_pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: alooha_proxy_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@me.com
+      PGADMIN_DEFAULT_PASSWORD: strongpassword
+    ports:
+      - "5050:80"
+    depends_on:
+      - alooha_proxy_db
+    

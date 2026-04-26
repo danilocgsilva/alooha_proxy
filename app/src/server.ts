@@ -1,5 +1,8 @@
 import express from "express";
 import { request } from "undici";
+import type Metric from "./types/Metric.js";
+import type QuestionAnatomy from "./types/QuestionAnatomy.js";
+import MetricWorks from "./MetricWorks.js";
 
 const app = express();
 
@@ -7,17 +10,19 @@ app.use(express.raw({ type: "*/*" }));
 
 const OLLAMA_URL = "http://host.docker.internal:11434";
 
-type Metric = {
-  path: string;
-  method: string;
-  // time: number;
-  bytes: number;
-  status: number;
-};
-
 const metrics: Metric[] = [];
 
+const assemblyHeader = function(res: express.Response, upstreamHeaders: any) {
+  for (const [key, value] of Object.entries(upstreamHeaders)) {
+    if (value) {
+      res.setHeader(key, value as string);
+    }
+  }
+}
+
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
+  const questionAnatomy: QuestionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req.originalUrl);
+
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
 
   try {
@@ -35,9 +40,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     res.status(statusCode);
 
-    for (const [key, value] of Object.entries(upstreamHeaders)) {
-      if (value) res.setHeader(key, value as string);
-    }
+    assemblyHeader(res, upstreamHeaders);
 
     let totalBytes = 0;
 
