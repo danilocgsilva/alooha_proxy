@@ -9,7 +9,7 @@ const app = express();
 
 app.use(express.raw({ type: "*/*" }));
 
-const OLLAMA_URL = "http://host.docker.internal:11434";
+const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11434"}`;
 
 const metrics: Metric[] = [];
 

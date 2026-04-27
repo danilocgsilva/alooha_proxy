@@ -3,6 +3,8 @@ services:
     build:
       context: .
     container_name: alooha_proxy
+    env_file:
+      - .env
     volumes:
       - './app:/app'
     ports:
