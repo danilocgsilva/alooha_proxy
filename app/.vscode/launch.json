@@ -15,7 +15,9 @@
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
-            ]
+            ],
+            "sourceMaps": true,
+            "inspect": "0.0.0.0:9229"
         },
         {
             "type": "node",
@@ -28,7 +30,9 @@
             "preLaunchTask": "tsc: build - tsconfig.json",
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
-            ]
+            ],
+            "sourceMaps": true,
+            "inspect": "0.0.0.0:9229"
         }
     ]
 }
