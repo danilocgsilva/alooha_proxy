@@ -3,6 +3,7 @@ import { request } from "undici";
 import type Metric from "./types/Metric.js";
 import type QuestionAnatomy from "./types/QuestionAnatomy.js";
 import MetricWorks from "./MetricWorks.js";
+import RequestIntent from "./RequestIntent.js";
 
 const app = express();
 
@@ -21,9 +22,13 @@ const assemblyHeader = function(res: express.Response, upstreamHeaders: any) {
 }
 
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
-  const questionAnatomy: QuestionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req.originalUrl);
-
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
+
+  let questionAnatomy: QuestionAnatomy|null = null;
+  const requestIntent: RequestIntent = new RequestIntent(req);
+  if (requestIntent.getIntent() === "question") {
+    questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req.originalUrl);
+  }
 
   try {
     const headers = { ...req.headers };
