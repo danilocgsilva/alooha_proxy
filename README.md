@@ -4,6 +4,7 @@ A proxy to be in front of Ollama server, but capturing answer metrics and perfor
 
 ## Usage
 
+1. Copy `.env.example` to `.env`, and change the port if required.
 1. Compile the TypeScript.
 2. Run `dist/server.js`
 
