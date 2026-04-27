@@ -7,14 +7,17 @@ class RequestIntent {
         this.request = request;
     }
 
-    public getIntent(): "listModels" | "question" | "option" {
+    public getIntent(): "listModels" | "question" | "option" | "" {
         if (this.request.method === "OPTIONS") {
             return "option";
         }
         if (this.request.originalUrl === "/api/tags") {
             return "listModels";
         }
-        return "question";
+        if (this.request.originalUrl === "/api/chat") {
+            return "question";
+        }
+        return ""
     }
 }
 
