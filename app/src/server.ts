@@ -79,8 +79,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 });
 
-const portToServe: Number = 11001;
+const portToServe: number = 11001;
 
-app.listen(portToServe, () => {
+app.listen(portToServe, "0.0.0.0", () => {
   console.log(`Proxy running on :${portToServe.toString()}`);
 });
