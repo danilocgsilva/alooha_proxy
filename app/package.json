@@ -5,12 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "serve": "node dist/server.js"
+    "serve": "node dist/server.js",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/dataSource.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^5.2.1",
+    "pg": "^8.20.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28",
     "undici": "^8.1.0"
   },
   "devDependencies": {
