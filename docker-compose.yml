@@ -14,7 +14,9 @@ services:
     - "host.docker.internal:host-gateway"
     working_dir: /app
   alooha_proxy_db:
-    image: postgres:16
+    build:
+      context: .
+      dockerfile: Psql.Dockerfile
     container_name: alooha_proxy_db
     environment:
       POSTGRES_USER: admin
