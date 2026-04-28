@@ -14,7 +14,7 @@ class RequestIntent {
         if (this.request.originalUrl === "/api/tags") {
             return "listModels";
         }
-        if (this.request.originalUrl === "/api/chat") {
+        if (this.request.originalUrl === "/api/chat" || this.request.originalUrl === "/api/generate") {
             return "question";
         }
         return ""

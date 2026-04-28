@@ -27,7 +27,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   let questionAnatomy: QuestionAnatomy|null = null;
   const requestIntent: RequestIntent = new RequestIntent(req);
   if (requestIntent.getIntent() === "question") {
-    questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req.originalUrl);
+    questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
   }
 
   try {
