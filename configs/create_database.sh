@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-source "$(dirname "$0")/.env"
-
 PGPASSWORD="$DB_PASSWORD" psql \
   -h "$DB_HOST" \
   -p "$DB_PORT" \
