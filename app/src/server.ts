@@ -5,7 +5,9 @@ import type QuestionAnatomy from "./types/QuestionAnatomy.js";
 import MetricWorks from "./MetricWorks.js";
 import MetricLifeCycle from "./MetricLifeCycle.js";
 import RequestIntent from "./RequestIntent.js";
-import QuestionPerformance from "./domain/QuestionPerformance.js";
+import FriendlyPerformanceSummary from "./domain/FriendlyPerformanceSummary.js";
+import LogConsole from "./LogConsole.js";
+import { log } from "node:console";
 
 const app = express();
 
@@ -24,19 +26,18 @@ const assemblyHeader = function(res: express.Response, upstreamHeaders: any) {
 }
 
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
+  const logWritter = new LogConsole();
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
   const metricLifeCycle = new MetricLifeCycle();
   let questionAnatomy: QuestionAnatomy|null = null;
-  let fullAnswer: string = "";
   const requestIntent: RequestIntent = new RequestIntent(req);
-  let questionPerformance: QuestionPerformance|null = null;
   const requestIntentString = requestIntent.getIntent();
   if (requestIntentString === "question") {
-    questionPerformance = new QuestionPerformance();
-    questionPerformance.setQuestion("");
+    questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
-    questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
+    logWritter.log(`I got your question: ${questionAnatomy.question}`);
+    logWritter.log(`Model choosed: ${questionAnatomy.model}`);
   }
 
   try {
@@ -57,10 +58,15 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     assemblyHeader(res, upstreamHeaders);
 
     let totalBytes = 0;
+    let totalChunks = 0;
 
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
-      metricLifeCycle.digestChunk(chunk);
+      totalChunks++;
+      if (requestIntentString === "question") {
+        const chunksResponse = metricLifeCycle.digestChunk(chunk);
+        logWritter.log(chunksResponse);
+      }
     });
 
     body.on("error", (err) => {
@@ -75,14 +81,32 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     body.pipe(res);
 
     body.on("end", () => {
-      console.log(metricLifeCycle.getFullAnswer());
-      metricLifeCycle.setWhenEnded()
+      
+      metricLifeCycle.setWhenEnded();
+
       metrics.push({
         path: req.path,
         method: req.method,
         bytes: totalBytes,
         status: statusCode,
       });
+
+      if (questionAnatomy === null) {
+        throw new Error("There's no question done yet.");
+      }
+
+      const answerPerformance = metricLifeCycle.getAnswerPerformance(totalBytes, questionAnatomy, totalChunks);
+      const friendlyPerformanceSummary = new FriendlyPerformanceSummary(answerPerformance);
+      const performanceSummary = friendlyPerformanceSummary.getPerformance(questionAnatomy.question);
+      const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
+
+      logWritter.log("=========- Question ============");
+      logWritter.log(questionAnatomy.question);
+      logWritter.log("============ Answer =================");
+      logWritter.log(metricLifeCycle.getFullAnswer());
+      logWritter.log("============ Performance =============");
+      logWritter.log(performanceSummaryString);
+      logWritter.log("==================================\n");
     });
 
   } catch (err) {

@@ -4,14 +4,16 @@ import express from "express";
 class MetricWorks {
     static getAnatomy(requestBody: string, request: express.Request): QuestionAnatomy {
         if (request.originalUrl === "/api/chat") {
-            const messagesCurrentQuestion = JSON.parse(requestBody).messages;
+            const requestBodyParsed = JSON.parse(requestBody);
+            const messagesCurrentQuestion = requestBodyParsed.messages;
             const dataUniqueMessage: Record<string, string> = messagesCurrentQuestion[0];
             const question: string = dataUniqueMessage.content;
             const url: string = request.url;
             return {
                 requestBody,
                 url,
-                question
+                question,
+                model: requestBodyParsed.model
             }
         }
         if (request.originalUrl === "/api/generate") {
@@ -21,7 +23,8 @@ class MetricWorks {
             return {
                 requestBody,
                 url,
-                question
+                question,
+                model: messagesCurrentQuestion.model
             }
         }
         throw new Error("The original url is not known.")

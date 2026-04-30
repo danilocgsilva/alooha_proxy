@@ -1,7 +1,8 @@
 type QuestionAnatomy = {
     requestBody: string
     question: string,
-    url: string
+    url: string,
+    model: string
 }
 
 export default QuestionAnatomy;

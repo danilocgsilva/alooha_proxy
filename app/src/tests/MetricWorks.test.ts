@@ -33,6 +33,7 @@ describe("MetricWorks.getAnatomy", () => {
 
         expect(result.url).toBe("/api/chat");
         expect(result.question).toBe("What is the Malasia capital?");
+        expect(result.model).toBe("gemma3:4b");
     });
 
     it("returns anatomy with question and requestBody using the generate endpoint", () => {
@@ -53,5 +54,23 @@ describe("MetricWorks.getAnatomy", () => {
 
         expect(result.url).toBe("/api/generate");
         expect(result.question).toBe("What is the Malasia capital?");
+        expect(result.model).toBe("gemma3:4b");
+    });
+
+    it("returns message content from a valid chunk buffer", () => {
+        const testRecords = { message: { content: "hello" } };
+        const chunk = Buffer.from(JSON.stringify(testRecords));
+        expect(MetricWorks.getDataChunk(chunk)).toBe("hello");
+    });
+
+    it("throws on invalid JSON", () => {
+        const chunk = Buffer.from("not json");
+        expect(() => MetricWorks.getDataChunk(chunk)).toThrow();
+    });
+
+    it("throws when message property is missing", () => {
+        const testRecords = { other: "data" };
+        const chunk = Buffer.from(JSON.stringify(testRecords));
+        expect(() => MetricWorks.getDataChunk(chunk)).toThrow();
     });
 });
