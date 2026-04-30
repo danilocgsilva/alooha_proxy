@@ -1,5 +1,6 @@
 import express from "express";
 import AnswerPerformance from "./types/AnswerPerformance";
+import MetricWorks from "./MetricWorks.js";
 
 class MetricLifeCycle {
     private beginTimeMilliseconds!: number;
@@ -9,6 +10,8 @@ class MetricLifeCycle {
     private userIp!: string|unknown;
 
     private isBegan: boolean = false;
+
+    private chunksAnswer: string[] = [];
 
     public setWhenBegan() {
         const now = new Date();
@@ -34,6 +37,15 @@ class MetricLifeCycle {
             beginUnixEpochTimestamp: this.beginTimeMilliseconds,
             endUnixEpochTimestamp: this.endTimeMilliseconds
         };
+    }
+
+    public digestChunk(chunk: Buffer) {
+        const chunkResponse = MetricWorks.getDataChunk(chunk);
+        this.chunksAnswer.push(chunkResponse);
+    }
+
+    public getFullAnswer() : string {
+        return this.chunksAnswer.join("");
     }
 }
 

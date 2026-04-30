@@ -60,6 +60,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
+      metricLifeCycle.digestChunk(chunk);
     });
 
     body.on("error", (err) => {
@@ -71,11 +72,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       body.destroy();
     });
 
-    console.log(res);
-
     body.pipe(res);
 
     body.on("end", () => {
+      console.log(metricLifeCycle.getFullAnswer());
       metricLifeCycle.setWhenEnded()
       metrics.push({
         path: req.path,

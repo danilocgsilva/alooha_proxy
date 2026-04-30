@@ -27,9 +27,10 @@ class MetricWorks {
         throw new Error("The original url is not known.")
     }
 
-    static getDataChunk(requestBody: string) {
-        const bodyParsed = JSON.parse(requestBody);
-        return bodyParsed.response;
+    static getDataChunk(responseChunk: Buffer): string {
+        const chunkString = responseChunk.toString();
+        const chunkParsed = JSON.parse(chunkString);
+        return chunkParsed.message.content;
     }
 }
 
