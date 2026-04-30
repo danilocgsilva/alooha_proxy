@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest",
     "serve": "node dist/server.js",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/dataSource.ts"
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/dataSource.ts",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",

@@ -26,6 +26,11 @@ class MetricWorks {
         }
         throw new Error("The original url is not known.")
     }
+
+    static getDataChunk(requestBody: string) {
+        const bodyParsed = JSON.parse(requestBody);
+        return bodyParsed.response;
+    }
 }
 
 export default MetricWorks;

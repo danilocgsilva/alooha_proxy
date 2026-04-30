@@ -27,9 +27,11 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
   const metricLifeCycle = new MetricLifeCycle();
   let questionAnatomy: QuestionAnatomy|null = null;
+  let fullAnswer: string = "";
   const requestIntent: RequestIntent = new RequestIntent(req);
   let questionPerformance: QuestionPerformance|null = null;
-  if (requestIntent.getIntent() === "question") {
+  const requestIntentString = requestIntent.getIntent();
+  if (requestIntentString === "question") {
     questionPerformance = new QuestionPerformance();
     questionPerformance.setQuestion("");
     metricLifeCycle.setWhenBegan();
@@ -68,6 +70,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     res.on("close", () => {
       body.destroy();
     });
+
+    console.log(res);
 
     body.pipe(res);
 
