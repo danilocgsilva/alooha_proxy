@@ -1,5 +1,6 @@
 type FriendlyPerformanceType = {
     bytesSize: number,
+    answerTotalCharacters: number,
     warmUpDurationSeconds: number,
     chunksDurationSeconds: number,
     totalDurationInSeconds: number,

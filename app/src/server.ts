@@ -1,6 +1,5 @@
 import express from "express";
 import { request } from "undici";
-import type Metric from "./types/Metric.js";
 import type QuestionAnatomy from "./types/QuestionAnatomy.js";
 import MetricWorks from "./MetricWorks.js";
 import MetricLifeCycle from "./MetricLifeCycle.js";
@@ -14,8 +13,6 @@ const app = express();
 app.use(express.raw({ type: "*/*" }));
 
 const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11434"}`;
-
-const metrics: Metric[] = [];
 
 const assemblyHeader = function(res: express.Response, upstreamHeaders: any) {
   for (const [key, value] of Object.entries(upstreamHeaders)) {
@@ -81,34 +78,31 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     body.pipe(res);
 
     body.on("end", () => {
+      logWritter.log("===> End event reached <===");
+      logWritter.log(`Intent: ${requestIntentString}`);
       
-      metricLifeCycle.setWhenEnded();
-
-      metrics.push({
-        path: req.path,
-        method: req.method,
-        bytes: totalBytes,
-        status: statusCode,
-      });
-
-      if (questionAnatomy === null) {
-        throw new Error("There's no question done yet.");
+      if (requestIntentString === "question") {
+        metricLifeCycle.setWhenEnded();
+        const fullAnswer = metricLifeCycle.getFullAnswer();
+  
+        if (questionAnatomy === null) {
+          throw new Error("There's no question done yet.");
+        }
+  
+        const answerPerformance = metricLifeCycle.getAnswerPerformance(totalBytes, questionAnatomy, totalChunks);
+        const friendlyPerformanceSummary = new FriendlyPerformanceSummary(answerPerformance);
+        const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
+        const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
+  
+        logWritter.log("=========- Question ============");
+        logWritter.log(questionAnatomy.question);
+        logWritter.log("============ Answer =================");
+        logWritter.log(fullAnswer);
+        logWritter.log("============ Performance =============");
+        logWritter.log(performanceSummaryString);
+        logWritter.log("==================================\n");
       }
-
-      const answerPerformance = metricLifeCycle.getAnswerPerformance(totalBytes, questionAnatomy, totalChunks);
-      const friendlyPerformanceSummary = new FriendlyPerformanceSummary(answerPerformance);
-      const performanceSummary = friendlyPerformanceSummary.getPerformance(questionAnatomy.question);
-      const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
-
-      logWritter.log("=========- Question ============");
-      logWritter.log(questionAnatomy.question);
-      logWritter.log("============ Answer =================");
-      logWritter.log(metricLifeCycle.getFullAnswer());
-      logWritter.log("============ Performance =============");
-      logWritter.log(performanceSummaryString);
-      logWritter.log("==================================\n");
     });
-
   } catch (err) {
     console.error("Proxy error:", err);
     res.status(502).json({ error: "Bad Gateway" });
