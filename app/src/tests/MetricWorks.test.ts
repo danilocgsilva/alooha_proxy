@@ -1,12 +1,6 @@
-import MetricWorks from "./MetricWorks";
+import MetricWorks from "../MetricWorks";
 import type express from "express";
-import type QuestionAnatomy from "./types/QuestionAnatomy";
-
-// const mockRequest = (url: string, body: string) =>
-//     ({ url } as unknown as express.Request);
-
-// const makeBody = (content: string) =>
-//     JSON.stringify({ messages: [{ content }] });
+import type QuestionAnatomy from "../types/QuestionAnatomy";
 
 const mockRequest = (url: string, body: string) =>
     ({
@@ -48,12 +42,6 @@ describe("MetricWorks.getAnatomy", () => {
             "stream": true
         };
 
-        // const requestBodyContent = `{
-
-        // }`;
-        
-
-        // const body = makeBody(requestBodyContent);
         const body = JSON.stringify(requestBodyContent);
         const req = mockRequest("/api/generate", body);
 

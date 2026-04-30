@@ -5,6 +5,7 @@ import type QuestionAnatomy from "./types/QuestionAnatomy.js";
 import MetricWorks from "./MetricWorks.js";
 import MetricLifeCycle from "./MetricLifeCycle.js";
 import RequestIntent from "./RequestIntent.js";
+import QuestionPerformance from "./domain/QuestionPerformance.js";
 
 const app = express();
 
@@ -27,7 +28,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const metricLifeCycle = new MetricLifeCycle();
   let questionAnatomy: QuestionAnatomy|null = null;
   const requestIntent: RequestIntent = new RequestIntent(req);
+  let questionPerformance: QuestionPerformance|null = null;
   if (requestIntent.getIntent() === "question") {
+    questionPerformance = new QuestionPerformance();
+    questionPerformance.setQuestion("");
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);

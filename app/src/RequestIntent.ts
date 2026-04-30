@@ -19,6 +19,13 @@ class RequestIntent {
         }
         return ""
     }
+
+    public getQuestion(): string {
+        const userBody = this.request.body;
+        const bodyDecoded = JSON.parse(userBody);
+        const userMessages = bodyDecoded.messages;
+        return userMessages[0].content;
+    }
 }
 
 export default RequestIntent;

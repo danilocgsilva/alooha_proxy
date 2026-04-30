@@ -16,8 +16,7 @@
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ],
-            "sourceMaps": true,
-            "inspect": "0.0.0.0:9229"
+            "sourceMaps": true
         },
         {
             "type": "node",
@@ -31,8 +30,22 @@
             "outFiles": [
                 "${workspaceFolder}/dist/**/*.js"
             ],
-            "sourceMaps": true,
-            "inspect": "0.0.0.0:9229"
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": ["--runInBand"],
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "sourceMaps": true
         }
     ]
 }
