@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne, OneToMany } from "typeorm";
 import { Content } from "./Content";
 import { LongTextMetaValue } from "./LongTextMetaValue";
 
@@ -19,4 +19,14 @@ export class MetaName {
 
   @OneToOne(() => LongTextMetaValue, (v) => v.metaName)
   longTextMetaValue!: LongTextMetaValue;
+
+  @Column({ nullable: true })
+  parent_id!: number | null;
+
+  @ManyToOne(() => MetaName, (m) => m.children, { nullable: true })
+  @JoinColumn({ name: "parent_id" })
+  parent!: MetaName | null;
+
+  @OneToMany(() => MetaName, (m) => m.parent)
+  children!: MetaName[];
 }
