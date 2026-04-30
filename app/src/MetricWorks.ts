@@ -16,8 +16,6 @@ class MetricWorks {
         }
         if (request.originalUrl === "/api/generate") {
             const messagesCurrentQuestion: Record<string, string> = JSON.parse(requestBody);
-            // const dataUniqueMessage: Record<string, string> = messagesCurrentQuestion[0];
-            // const question: string = dataUniqueMessage.content;
             const url: string = request.url;
             const question: string = messagesCurrentQuestion.question;
             return {

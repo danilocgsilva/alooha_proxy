@@ -3,6 +3,7 @@ import { request } from "undici";
 import type Metric from "./types/Metric.js";
 import type QuestionAnatomy from "./types/QuestionAnatomy.js";
 import MetricWorks from "./MetricWorks.js";
+import MetricLifeCycle from "./MetricLifeCycle.js";
 import RequestIntent from "./RequestIntent.js";
 
 const app = express();
@@ -23,10 +24,12 @@ const assemblyHeader = function(res: express.Response, upstreamHeaders: any) {
 
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
-
+  const metricLifeCycle = new MetricLifeCycle();
   let questionAnatomy: QuestionAnatomy|null = null;
   const requestIntent: RequestIntent = new RequestIntent(req);
   if (requestIntent.getIntent() === "question") {
+    metricLifeCycle.setWhenBegan();
+    metricLifeCycle.setUserIp(req);
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
   }
 
@@ -65,6 +68,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     body.pipe(res);
 
     body.on("end", () => {
+      metricLifeCycle.setWhenEnded()
       metrics.push({
         path: req.path,
         method: req.method,
