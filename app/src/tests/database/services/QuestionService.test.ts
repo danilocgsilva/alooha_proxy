@@ -6,6 +6,7 @@ import { LongTextMetaValue } from "../../../database/entities/LongTextMetaValue"
 import { InitSchema1700000000000 } from "../../../database/migrations/1700000000000-InitSchema";
 import { MetaNameSelfRelation1700000000001 } from "../../../database/migrations/1700000000001-MetaNameSelfRelation";
 import QuestionService from "../../../database/services/QuestionService";
+import { truncate } from "node:fs";
 
 const testDataSource = new DataSource({
     type: "postgres",
@@ -19,6 +20,11 @@ const testDataSource = new DataSource({
     migrationsRun: true,
 });
 
+const truncateTableCascade = async function(tableName: string, dataSource: DataSource) {
+    const truncateQuery = `TRUNCATE TABLE ${tableName} CASCADE;`;
+    await dataSource.query(truncateQuery);
+}
+
 beforeAll(async () => {
     await testDataSource.initialize();
 });
@@ -28,9 +34,9 @@ afterAll(async () => {
 });
 
 afterEach(async () => {
-    await testDataSource.getRepository(LongTextMetaValue).clear();
-    await testDataSource.getRepository(Content).clear();
-    await testDataSource.getRepository(MetaName).clear();
+    await truncateTableCascade("long_text_meta_value", testDataSource);
+    await truncateTableCascade("meta_names", testDataSource);
+    await truncateTableCascade("contents", testDataSource);
 });
 
 describe("QuestionService", () => {
