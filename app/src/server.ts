@@ -6,7 +6,6 @@ import MetricLifeCycle from "./MetricLifeCycle.js";
 import RequestIntent from "./RequestIntent.js";
 import FriendlyPerformanceSummary from "./domain/FriendlyPerformanceSummary.js";
 import LogConsole from "./LogConsole.js";
-import { log } from "node:console";
 
 const app = express();
 
@@ -35,6 +34,18 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     metricLifeCycle.setUserIp(req);
     logWritter.log(`I got your question: ${questionAnatomy.question}`);
     logWritter.log(`Model choosed: ${questionAnatomy.model}`);
+
+    const date = new Date();
+
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Sao_Paulo", // change to your target timezone
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
+    logWritter.log(`===> ${formatter.format(date)}`);
   }
 
   try {
@@ -65,7 +76,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       totalChunks++;
       if (requestIntentString === "question") {
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
-        logWritter.log(chunksResponse);
+        logWritter.log(`-> ${chunksResponse}`);
       }
     });
 
