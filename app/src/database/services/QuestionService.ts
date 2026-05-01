@@ -1,20 +1,19 @@
-import { ContentRepository } from "../repositories/ContentRepository";
-import { MetaNameRepository } from "../repositories/MetaNameRepository";
-import { LongTextMetaValueRepository } from "../repositories/LongTextMetaValueRepository";
+import { DataSource } from "typeorm";
+import { AppDataSource } from "../dataSource";
 import { Content } from "../entities/Content";
 import { MetaName } from "../entities/MetaName";
 import { LongTextMetaValue } from "../entities/LongTextMetaValue";
 
 class QuestionService {
     private question!: string;
-    private contentRepository: typeof ContentRepository;
-    private metaNameRepository: typeof MetaNameRepository;
-    private longTextStringRepository: typeof LongTextMetaValueRepository;
+    private contentRepository: ReturnType<DataSource["getRepository"]>;
+    private metaNameRepository: ReturnType<DataSource["getRepository"]>;
+    private longTextStringRepository: ReturnType<DataSource["getRepository"]>;
 
-    constructor() {
-        this.contentRepository = ContentRepository;
-        this.metaNameRepository = MetaNameRepository;
-        this.longTextStringRepository = LongTextMetaValueRepository;
+    constructor(dataSource: DataSource = AppDataSource) {
+        this.contentRepository = dataSource.getRepository(Content);
+        this.metaNameRepository = dataSource.getRepository(MetaName);
+        this.longTextStringRepository = dataSource.getRepository(LongTextMetaValue);
     }
 
     public setQuestion(question: string) {
