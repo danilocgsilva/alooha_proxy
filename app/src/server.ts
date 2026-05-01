@@ -14,7 +14,7 @@ app.use(express.raw({ type: "*/*" }));
 
 const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11434"}`;
 
-const assemblyHeader = function(res: express.Response, upstreamHeaders: any) {
+const assemblyHeader = function (res: express.Response, upstreamHeaders: any) {
   for (const [key, value] of Object.entries(upstreamHeaders)) {
     if (value) {
       res.setHeader(key, value as string);
@@ -26,7 +26,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const logWritter = new LogConsole();
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
   const metricLifeCycle = new MetricLifeCycle();
-  let questionAnatomy: QuestionAnatomy|null = null;
+  let questionAnatomy: QuestionAnatomy | null = null;
   const requestIntent: RequestIntent = new RequestIntent(req);
   const requestIntentString = requestIntent.getIntent();
   if (requestIntentString === "question") {
@@ -48,6 +48,9 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       method: req.method,
       headers,
       body: req.body && req.body.length ? req.body : undefined,
+
+      headersTimeout: 1000 * 60 * 10, // 10 minutes
+      bodyTimeout: 1000 * 60 * 10,    // optional: time between body chunks
     });
 
     res.status(statusCode);
@@ -80,20 +83,20 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     body.on("end", () => {
       logWritter.log("===> End event reached <===");
       logWritter.log(`Intent: ${requestIntentString}`);
-      
+
       if (requestIntentString === "question") {
         metricLifeCycle.setWhenEnded();
         const fullAnswer = metricLifeCycle.getFullAnswer();
-  
+
         if (questionAnatomy === null) {
           throw new Error("There's no question done yet.");
         }
-  
+
         const answerPerformance = metricLifeCycle.getAnswerPerformance(totalBytes, questionAnatomy, totalChunks);
         const friendlyPerformanceSummary = new FriendlyPerformanceSummary(answerPerformance);
         const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
         const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
-  
+
         logWritter.log("=========- Question ============");
         logWritter.log(questionAnatomy.question);
         logWritter.log("============ Answer =================");
