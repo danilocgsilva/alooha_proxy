@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "serve": "node dist/server.js",
+    "serve": "tsc && node dist/server.js",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/dataSource.ts",
     "migration-test:run": "typeorm-ts-node-commonjs migration:run -d src/tests/database/dataSource.ts",
     "build": "tsc"
