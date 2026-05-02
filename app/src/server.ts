@@ -4,39 +4,15 @@ import type QuestionAnatomy from "./types/QuestionAnatomy.js";
 import MetricWorks from "./MetricWorks.js";
 import MetricLifeCycle from "./MetricLifeCycle.js";
 import RequestIntent from "./RequestIntent.js";
-import FriendlyPerformanceSummary from "./domain/FriendlyPerformanceSummary.js";
 import LogConsole from "./LogConsole.js";
 import { AppDataSource } from "./database/dataSource.js";
-import QuestionService from "./database/services/QuestionService.js";
+import QuestionProcessingHelper from "./QuestionProcessingHelper.js";
 
 const app = express();
 
 app.use(express.raw({ type: "*/*" }));
 
 const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11434"}`;
-
-const assemblyHeader = function (res: express.Response, upstreamHeaders: any) {
-  for (const [key, value] of Object.entries(upstreamHeaders)) {
-    if (value) {
-      res.setHeader(key, value as string);
-    }
-  }
-}
-
-const printPerformanceIntoTerminal = function (
-  questionAnatomy: QuestionAnatomy,
-  fullAnswer: string,
-  performanceSummaryString: string,
-  logWritter: LogConsole
-) {
-  logWritter.log("=========- Question ============");
-  logWritter.log(questionAnatomy.question);
-  logWritter.log("============ Answer =================");
-  logWritter.log(fullAnswer);
-  logWritter.log("============ Performance =============");
-  logWritter.log(performanceSummaryString);
-  logWritter.log("==================================\n");
-}
 
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const logWritter = new LogConsole();
@@ -83,7 +59,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     res.status(statusCode);
 
-    assemblyHeader(res, upstreamHeaders);
+    QuestionProcessingHelper.assemblyHeader(res, upstreamHeaders);
 
     let totalBytes = 0;
     let totalChunks = 0;
@@ -113,39 +89,11 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       logWritter.log(`Intent: ${requestIntentString}`);
 
       if (requestIntentString === "question") {
-        metricLifeCycle.setWhenEnded();
-        const fullAnswer = metricLifeCycle.getFullAnswer();
-
-        if (questionAnatomy === null) {
-          throw new Error("There's no question done yet.");
-        }
-
-        const answerPerformance = metricLifeCycle.getAnswerPerformance(totalBytes, questionAnatomy, totalChunks);
-        const friendlyPerformanceSummary = new FriendlyPerformanceSummary(answerPerformance);
-        const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
-        const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
-
-        const questionService = new QuestionService(AppDataSource);
-
-        questionService.setQuestion(answerPerformance.question);
-
-        questionService.addMeta({
-          name: "begin",
-          value: answerPerformance.beginUnixEpochTimestamp.toString()
-        });
-
-        questionService.addMeta({
-          name: "answer",
-          value: answerPerformance.answer
-        });
-
-        questionService.save();
-        logWritter.log("Saved to database");
-
-        printPerformanceIntoTerminal(
-          questionAnatomy,
-          fullAnswer,
-          performanceSummaryString,
+        QuestionProcessingHelper.finishQuestion(
+          metricLifeCycle, 
+          questionAnatomy, 
+          totalBytes, 
+          totalChunks, 
           logWritter
         );
       }
