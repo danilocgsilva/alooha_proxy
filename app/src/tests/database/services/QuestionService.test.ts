@@ -6,7 +6,7 @@ import { LongTextMetaValue } from "../../../database/entities/LongTextMetaValue"
 import { InitSchema1700000000000 } from "../../../database/migrations/1700000000000-InitSchema";
 import { MetaNameSelfRelation1700000000001 } from "../../../database/migrations/1700000000001-MetaNameSelfRelation";
 import QuestionService from "../../../database/services/QuestionService";
-import { truncate } from "node:fs";
+import Meta from "../../../types/Meta";
 
 const testDataSource = new DataSource({
     type: "postgres",
@@ -58,6 +58,13 @@ describe("QuestionService", () => {
         expect(saved?.string_meta_value).toBe("What is the capital of France?");
     });
 
+    it("saves a question creating one row in content table", async () => {
+        service.setQuestion("What is the capital of Brazil?");
+        await service.save();
+        const contentRepository = testDataSource.getRepository(Content);
+        expect(await contentRepository.count()).toBe(1);
+    });
+
     it("Verifies the type of meta name", async () => {
         service.setQuestion("What is the capital of Marrocos?");
 
@@ -66,27 +73,84 @@ describe("QuestionService", () => {
         const metaNameRepository = testDataSource.getRepository(MetaName);
 
         const metaName = await metaNameRepository.findOne({
-            where: { meta_name: 'kind' } 
+            where: { meta_name: 'kind' }
         });
 
         expect(metaName).not.toBeNull();
     });
 
-    it ("Adds metas to content", async () => {
-        const service = new QuestionService(testDataSource);
+    it("Adds metas to content", async () => {
         service.setQuestion("What is the capital of Marrocos?");
 
         const customDate = new Date("2023-10-27T10:30:00.000Z");
         const milliseconds = customDate.getTime();
+        const millisecondsMeta: Meta = {
+            name: "begin",
+            value: milliseconds.toString()
+        };
+        service.addMeta(millisecondsMeta);
+
+        await service.save();
 
         const contentRepository = testDataSource.getRepository(Content);
         const metaNameRepository = testDataSource.getRepository(MetaName);
         const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
-        
-        service.addMeta("begin", milliseconds);
 
         expect(await contentRepository.count()).toBe(1);
-        expect(await metaNameRepository.count()).toBe(2);
+        expect(await metaNameRepository.count()).toBe(2)
         expect(await longTextMetaValueRepository.count()).toBe(2);
+    });
+
+    it("Adds metas to content 2", async () => {
+        service.setQuestion("What is the capital of Honduras?");
+
+        const customDate = new Date("2023-10-27T10:30:00.000Z");
+        const milliseconds = customDate.getTime();
+        const millisecondsMeta: Meta = {
+            name: "begin",
+            value: milliseconds.toString()
+        };
+        service.addMeta(millisecondsMeta);
+
+        await service.save();
+
+        const contentRepository = testDataSource.getRepository(Content);
+        const metaNameRepository = testDataSource.getRepository(MetaName);
+        const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
+
+        expect(await contentRepository.count()).toBe(1);
+        expect(await metaNameRepository.count()).toBe(2)
+        expect(await longTextMetaValueRepository.count()).toBe(2);
+    });
+
+    it("Model of how save question performance in server.ts", async () => {
+        service.setQuestion("How many peoples lives in Italy?");
+
+        const customDate = new Date("2023-10-27T10:30:00.000Z");
+        const milliseconds = customDate.getTime();
+        const beginTime: Meta = {
+            name: "begin",
+            value: milliseconds.toString()
+        };
+
+        service.addMeta({
+            name: "begin",
+            value: beginTime.toString()
+        });
+
+        service.addMeta({
+            name: "answer",
+            value: "There are 58 millions of peoples living in Italy"
+        });
+
+        await service.save();
+
+        const contentRepository = testDataSource.getRepository(Content);
+        const metaNameRepository = testDataSource.getRepository(MetaName);
+        const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
+
+        expect(await contentRepository.count()).toBe(1);
+        expect(await metaNameRepository.count()).toBe(3)
+        expect(await longTextMetaValueRepository.count()).toBe(3);
     });
 });

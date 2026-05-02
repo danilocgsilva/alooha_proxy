@@ -6,6 +6,8 @@ import MetricLifeCycle from "./MetricLifeCycle.js";
 import RequestIntent from "./RequestIntent.js";
 import FriendlyPerformanceSummary from "./domain/FriendlyPerformanceSummary.js";
 import LogConsole from "./LogConsole.js";
+import { AppDataSource } from "./database/dataSource.js";
+import QuestionService from "./database/services/QuestionService.js";
 
 const app = express();
 
@@ -123,6 +125,23 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
         const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
         const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
 
+        const questionService = new QuestionService(AppDataSource);
+
+        questionService.setQuestion(answerPerformance.question);
+
+        questionService.addMeta({
+          name: "begin",
+          value: answerPerformance.beginUnixEpochTimestamp.toString()
+        });
+
+        questionService.addMeta({
+          name: "answer",
+          value: answerPerformance.answer
+        });
+
+        questionService.save();
+        logWritter.log("Saved to database");
+
         printPerformanceIntoTerminal(
           questionAnatomy,
           fullAnswer,
@@ -140,5 +159,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 const portToServe: number = 11001;
 
 app.listen(portToServe, "0.0.0.0", () => {
+  AppDataSource.initialize();
   console.log(`Proxy running on :${portToServe.toString()}`);
 });

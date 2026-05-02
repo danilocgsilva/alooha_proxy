@@ -6,7 +6,7 @@ import { LongTextMetaValue } from "../entities/LongTextMetaValue";
 import Meta from "../../types/Meta";
 
 class QuestionService {
-    private question!: string;
+    private question: string;
     private contentRepository: ReturnType<DataSource["getRepository"]>;
     private metaNameRepository: ReturnType<DataSource["getRepository"]>;
     private longTextStringRepository: ReturnType<DataSource["getRepository"]>;
@@ -16,6 +16,7 @@ class QuestionService {
         this.contentRepository = dataSource.getRepository(Content);
         this.metaNameRepository = dataSource.getRepository(MetaName);
         this.longTextStringRepository = dataSource.getRepository(LongTextMetaValue);
+        this.question = "";
         this.metas = [];
     }
 
@@ -48,11 +49,15 @@ class QuestionService {
             await this.metaNameRepository.save(metaName);
 
             const contentValue = new LongTextMetaValue();
-            contentValue.string_meta_value = this.metas[i].name;
+            contentValue.string_meta_value = this.metas[i].value;
             contentValue.metaName = metaName;
             await this.longTextStringRepository.save(contentValue);
         }
+
+        this.question = "";
+        this.metas = [];
     }
+
 }
 
 export default QuestionService;
