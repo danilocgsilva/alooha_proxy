@@ -21,6 +21,21 @@ const assemblyHeader = function (res: express.Response, upstreamHeaders: any) {
   }
 }
 
+const printPerformanceIntoTerminal = function (
+  questionAnatomy: QuestionAnatomy,
+  fullAnswer: string,
+  performanceSummaryString: string,
+  logWritter: LogConsole
+) {
+  logWritter.log("=========- Question ============");
+  logWritter.log(questionAnatomy.question);
+  logWritter.log("============ Answer =================");
+  logWritter.log(fullAnswer);
+  logWritter.log("============ Performance =============");
+  logWritter.log(performanceSummaryString);
+  logWritter.log("==================================\n");
+}
+
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const logWritter = new LogConsole();
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
@@ -108,13 +123,12 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
         const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
         const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
 
-        logWritter.log("=========- Question ============");
-        logWritter.log(questionAnatomy.question);
-        logWritter.log("============ Answer =================");
-        logWritter.log(fullAnswer);
-        logWritter.log("============ Performance =============");
-        logWritter.log(performanceSummaryString);
-        logWritter.log("==================================\n");
+        printPerformanceIntoTerminal(
+          questionAnatomy,
+          fullAnswer,
+          performanceSummaryString,
+          logWritter
+        );
       }
     });
   } catch (err) {

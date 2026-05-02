@@ -20,7 +20,9 @@ const testDataSource = new DataSource({
     migrationsRun: true,
 });
 
-const truncateTableCascade = async function(tableName: string, dataSource: DataSource) {
+const service = new QuestionService(testDataSource);
+
+const truncateTableCascade = async function (tableName: string, dataSource: DataSource) {
     const truncateQuery = `TRUNCATE TABLE ${tableName} CASCADE;`;
     await dataSource.query(truncateQuery);
 }
@@ -41,20 +43,50 @@ afterEach(async () => {
 
 describe("QuestionService", () => {
     it("saves a question creating one row in each table", async () => {
-        const service = new QuestionService(testDataSource);
         service.setQuestion("What is the capital of France?");
         await service.save();
 
-        expect(await testDataSource.getRepository(Content).count()).toBe(1);
-        expect(await testDataSource.getRepository(MetaName).count()).toBe(1);
+        const contentRepository = testDataSource.getRepository(Content);
+        const metaNameRepository = testDataSource.getRepository(MetaName);
+        const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
+
+        expect(await contentRepository.count()).toBe(1);
+        expect(await metaNameRepository.count()).toBe(1);
+        expect(await longTextMetaValueRepository.count()).toBe(1);
 
         const saved = await testDataSource.getRepository(LongTextMetaValue).findOne({ where: { string_meta_value: "What is the capital of France?" } });
         expect(saved?.string_meta_value).toBe("What is the capital of France?");
     });
 
-    // it("resets between tests — tables should be empty", async () => {
-    //     expect(await testDataSource.getRepository(Content).count()).toBe(0);
-    //     expect(await testDataSource.getRepository(MetaName).count()).toBe(0);
-    //     expect(await testDataSource.getRepository(LongTextMetaValue).count()).toBe(0);
-    // });
+    it("Verifies the type of meta name", async () => {
+        service.setQuestion("What is the capital of Marrocos?");
+
+        await service.save();
+
+        const metaNameRepository = testDataSource.getRepository(MetaName);
+
+        const metaName = await metaNameRepository.findOne({
+            where: { meta_name: 'kind' } 
+        });
+
+        expect(metaName).not.toBeNull();
+    });
+
+    it ("Adds metas to content", async () => {
+        const service = new QuestionService(testDataSource);
+        service.setQuestion("What is the capital of Marrocos?");
+
+        const customDate = new Date("2023-10-27T10:30:00.000Z");
+        const milliseconds = customDate.getTime();
+
+        const contentRepository = testDataSource.getRepository(Content);
+        const metaNameRepository = testDataSource.getRepository(MetaName);
+        const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
+        
+        service.addMeta("begin", milliseconds);
+
+        expect(await contentRepository.count()).toBe(1);
+        expect(await metaNameRepository.count()).toBe(2);
+        expect(await longTextMetaValueRepository.count()).toBe(2);
+    });
 });
