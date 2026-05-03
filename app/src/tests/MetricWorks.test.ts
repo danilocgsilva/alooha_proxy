@@ -1,4 +1,4 @@
-import MetricWorks from "../MetricWorks";
+import MetricWorks from "../server_domain/MetricWorks";
 import type express from "express";
 import type QuestionAnatomy from "../types/QuestionAnatomy";
 

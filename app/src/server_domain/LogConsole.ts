@@ -1,4 +1,4 @@
-import LogInterface from "./LogInterface"
+import LogInterface from "./../domain/LogInterface"
 
 class LogConsole implements LogInterface {
     public log(logText: string): void {

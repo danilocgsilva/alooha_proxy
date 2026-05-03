@@ -1,7 +1,7 @@
 import express from "express";
-import AnswerPerformance from "./types/AnswerPerformance";
+import AnswerPerformance from "../types/AnswerPerformance";
 import MetricWorks from "./MetricWorks.js";
-import QuestionAnatomy from "./types/QuestionAnatomy";
+import QuestionAnatomy from "../types/QuestionAnatomy";
 
 class MetricLifeCycle {
     private beginTimeMilliseconds!: number;

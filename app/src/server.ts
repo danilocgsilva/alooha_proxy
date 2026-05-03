@@ -1,12 +1,12 @@
 import express from "express";
 import { request } from "undici";
 import type QuestionAnatomy from "./types/QuestionAnatomy.js";
-import MetricWorks from "./MetricWorks.js";
-import MetricLifeCycle from "./MetricLifeCycle.js";
-import RequestIntent from "./RequestIntent.js";
-import LogConsole from "./LogConsole.js";
+import MetricWorks from "./server_domain/MetricWorks.js";
+import MetricLifeCycle from "./server_domain/MetricLifeCycle.js";
+import RequestIntent from "./server_domain/RequestIntent.js";
+import LogConsole from "./server_domain/LogConsole.js";
 import { AppDataSource } from "./database/dataSource.js";
-import QuestionProcessingHelper from "./QuestionProcessingHelper.js";
+import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
 
 const app = express();
 

@@ -1,4 +1,4 @@
-import type QuestionAnatomy from "./types/QuestionAnatomy";
+import type QuestionAnatomy from "../types/QuestionAnatomy";
 import express from "express";
 
 class MetricWorks {

@@ -1,4 +1,4 @@
-import RequestIntent from "../RequestIntent";
+import RequestIntent from "../server_domain/RequestIntent";
 import type express from "express";
 
 const mockRequest = (url: string, body: string) =>

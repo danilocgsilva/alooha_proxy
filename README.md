@@ -2,6 +2,8 @@
 
 A proxy to be in front of Ollama server, but capturing answer metrics and performance.
 
+You access the endpoint served by this project exactly you do in Ollama. But this one intercepts all requests and takes oportunity to log statistics and response performance.
+
 ## Usage
 
 1. Copy `.env.example` to `.env`, and change the port if required.

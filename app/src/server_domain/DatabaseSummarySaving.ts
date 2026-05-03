@@ -1,5 +1,5 @@
-import QuestionService from "./database/services/QuestionService.js";
-import AnswerPerformance from "./types/AnswerPerformance";
+import QuestionService from "../database/services/QuestionService.js";
+import AnswerPerformance from "../types/AnswerPerformance.js";
 import { DataSource } from "typeorm";
 
 class DatabaseSummarySaving {
