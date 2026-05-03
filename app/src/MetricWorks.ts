@@ -6,14 +6,35 @@ class MetricWorks {
         if (request.originalUrl === "/api/chat") {
             const requestBodyParsed = JSON.parse(requestBody);
             const messagesCurrentQuestion = requestBodyParsed.messages;
-            const dataUniqueMessage: Record<string, string> = messagesCurrentQuestion[0];
-            const question: string = dataUniqueMessage.content;
+
+            let dataPrompt: Record<string, string>;
+            let dataSystemPrompt: Record<string, string> = {};
+            if (messagesCurrentQuestion.length === 2) {
+                dataPrompt = messagesCurrentQuestion[1];
+                dataSystemPrompt = messagesCurrentQuestion[0];
+            } else {
+                dataPrompt = messagesCurrentQuestion[0];
+            }
+
+            const question: string = dataPrompt.content;
+            const systemPrompt: string | undefined = dataSystemPrompt.content;
+            
             const url: string = request.url;
-            return {
-                requestBody,
-                url,
-                question,
-                model: requestBodyParsed.model
+            if (systemPrompt) {
+                return {
+                    requestBody,
+                    url,
+                    question,
+                    systemPrompt,
+                    model: requestBodyParsed.model
+                }
+            } else {
+                return {
+                    requestBody,
+                    url,
+                    question,
+                    model: requestBodyParsed.model
+                }
             }
         }
         if (request.originalUrl === "/api/generate") {
