@@ -5,6 +5,7 @@ import MetricLifeCycle from "./MetricLifeCycle.js";
 import FriendlyPerformanceSummary from "./domain/FriendlyPerformanceSummary.js";
 import QuestionService from "./database/services/QuestionService.js";
 import { AppDataSource } from "./database/dataSource.js";
+import DatabaseSummarySaving from "./DatabaseSummarySaving";
 
 class QuestionProcessingHelper {
     public static assemblyHeader(res: express.Response, upstreamHeaders: any) {
@@ -53,26 +54,9 @@ class QuestionProcessingHelper {
         const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
         const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
 
-        const questionService = new QuestionService(AppDataSource);
+        const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance);
+        databaseSummarySaving.save();
 
-        questionService.setQuestion(answerPerformance.question);
-
-        questionService.addMeta({
-            name: "begin",
-            value: answerPerformance.beginUnixEpochTimestamp.toString()
-        });
-
-        questionService.addMeta({
-            name: "answer",
-            value: answerPerformance.answer
-        });
-
-        questionService.addMeta({
-            name: "end",
-            value: answerPerformance.endUnixEpochTimestamp.toString()
-        });
-
-        questionService.save();
         logWritter.log("Saved to database");
 
         QuestionProcessingHelper.printPerformanceIntoTerminal(
