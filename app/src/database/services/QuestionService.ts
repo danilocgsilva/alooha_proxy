@@ -32,16 +32,28 @@ class QuestionService {
         const content = new Content();
         await this.contentRepository.save(content);
 
-        const metaName = new MetaName();
-        metaName.meta_name = "kind";
-        metaName.content = content;
-        await this.metaNameRepository.save(metaName);
+        const metaNameKind = new MetaName();
+        metaNameKind.meta_name = "kind";
+        metaNameKind.content = content;
+        await this.metaNameRepository.save(metaNameKind);
 
-        const contentValue = new LongTextMetaValue();
-        contentValue.string_meta_value = this.question;
-        contentValue.metaName = metaName;
-        await this.longTextStringRepository.save(contentValue);
+        const contentValueKind = new LongTextMetaValue();
+        contentValueKind.string_meta_value = "question";
+        contentValueKind.metaName = metaNameKind;
+        await this.longTextStringRepository.save(contentValueKind);
 
+
+        const metaNameQuestion = new MetaName();
+        metaNameQuestion.meta_name = "question";
+        metaNameQuestion.content = content;
+        await this.metaNameRepository.save(metaNameQuestion);
+
+        const contentValueQuestion = new LongTextMetaValue();
+        contentValueQuestion.string_meta_value = this.question;
+        contentValueQuestion.metaName = metaNameQuestion;
+        await this.longTextStringRepository.save(contentValueQuestion);
+
+        
         for (let i:number = 0; i < this.metas.length; i++) {
             const metaName = new MetaName();
             metaName.meta_name = this.metas[i].name;
@@ -57,7 +69,6 @@ class QuestionService {
         this.question = "";
         this.metas = [];
     }
-
 }
 
 export default QuestionService;

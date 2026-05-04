@@ -42,7 +42,7 @@ afterEach(async () => {
 });
 
 describe("QuestionService", () => {
-    it("saves a question creating one row in each table", async () => {
+    it("Saves a question creating basic question entries", async () => {
         service.setQuestion("What is the capital of France?");
         await service.save();
 
@@ -51,8 +51,8 @@ describe("QuestionService", () => {
         const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
 
         expect(await contentRepository.count()).toBe(1);
-        expect(await metaNameRepository.count()).toBe(1);
-        expect(await longTextMetaValueRepository.count()).toBe(1);
+        expect(await metaNameRepository.count()).toBe(2);
+        expect(await longTextMetaValueRepository.count()).toBe(2);
 
         const saved = await testDataSource.getRepository(LongTextMetaValue).findOne({ where: { string_meta_value: "What is the capital of France?" } });
         expect(saved?.string_meta_value).toBe("What is the capital of France?");
@@ -97,8 +97,8 @@ describe("QuestionService", () => {
         const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
 
         expect(await contentRepository.count()).toBe(1);
-        expect(await metaNameRepository.count()).toBe(2)
-        expect(await longTextMetaValueRepository.count()).toBe(2);
+        expect(await metaNameRepository.count()).toBe(3)
+        expect(await longTextMetaValueRepository.count()).toBe(3);
     });
 
     it("Adds metas to content 2", async () => {
@@ -119,8 +119,8 @@ describe("QuestionService", () => {
         const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
 
         expect(await contentRepository.count()).toBe(1);
-        expect(await metaNameRepository.count()).toBe(2)
-        expect(await longTextMetaValueRepository.count()).toBe(2);
+        expect(await metaNameRepository.count()).toBe(3)
+        expect(await longTextMetaValueRepository.count()).toBe(3);
     });
 
     it("Model of how save question performance in server.ts", async () => {
@@ -150,7 +150,7 @@ describe("QuestionService", () => {
         const longTextMetaValueRepository = testDataSource.getRepository(LongTextMetaValue);
 
         expect(await contentRepository.count()).toBe(1);
-        expect(await metaNameRepository.count()).toBe(3)
-        expect(await longTextMetaValueRepository.count()).toBe(3);
+        expect(await metaNameRepository.count()).toBe(4)
+        expect(await longTextMetaValueRepository.count()).toBe(4);
     });
 });
