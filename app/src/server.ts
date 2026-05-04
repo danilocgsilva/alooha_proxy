@@ -52,8 +52,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       headers,
       body: req.body && req.body.length ? req.body : undefined,
 
-      headersTimeout: 1000 * 60 * 10, // 10 minutes
-      bodyTimeout: 1000 * 60 * 10,    // optional: time between body chunks
+      headersTimeout: 1000 * 60 * 3 * 10,
+      bodyTimeout: 1000 * 60 * 3 * 10,
     });
 
     res.status(statusCode);
@@ -65,10 +65,11 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
-      totalChunks++;
-      if (requestIntentString === "question") {
+      if (requestIntentString === "question" && chunk.length > 0) {
+        totalChunks++;
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
-        logWritter.log(`-> ${uuid} -> ${formatterMilliseconds.format(new Date())} -> ${chunksResponse}`);
+        logWritter.log(`-> chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
+        logWritter.log(`--->${chunksResponse}<---`);
       }
     });
 
