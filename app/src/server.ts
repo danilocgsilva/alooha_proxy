@@ -7,6 +7,7 @@ import RequestIntent from "./server_domain/RequestIntent.js";
 import LogConsole from "./server_domain/LogConsole.js";
 import { AppDataSource } from "./database/dataSource.js";
 import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
+import { v4 as uuidv4 } from 'uuid';
 
 const app = express();
 
@@ -21,22 +22,20 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   let questionAnatomy: QuestionAnatomy | null = null;
   const requestIntent: RequestIntent = new RequestIntent(req);
   const requestIntentString = requestIntent.getIntent();
+  const formatter = QuestionProcessingHelper.getFormatter();
+  const formatterMilliseconds = QuestionProcessingHelper.getFormatterMilliseconds();
+  let uuid: string;
+
   if (requestIntentString === "question") {
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
     logWritter.log(`I got your question: ${questionAnatomy.question}`);
+    uuid = uuidv4();
+    logWritter.log(`Uuid: ${uuid}`);
     logWritter.log(`Model choosed: ${questionAnatomy.model}`);
-
+    
     const date = new Date();
-
-    const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Sao_Paulo",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
   }
@@ -69,7 +68,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       totalChunks++;
       if (requestIntentString === "question") {
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
-        logWritter.log(`-> ${chunksResponse}`);
+        logWritter.log(`-> ${uuid} -> ${formatterMilliseconds.format(new Date())} -> ${chunksResponse}`);
       }
     });
 
