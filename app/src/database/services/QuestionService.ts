@@ -6,6 +6,7 @@ import { LongTextMetaValue } from "../entities/LongTextMetaValue";
 import Meta from "../../types/Meta";
 
 class QuestionService {
+    private content: Content;
     private question: string;
     private contentRepository: ReturnType<DataSource["getRepository"]>;
     private metaNameRepository: ReturnType<DataSource["getRepository"]>;
@@ -13,6 +14,7 @@ class QuestionService {
     private metas: Meta[];
 
     constructor(dataSource: DataSource = AppDataSource) {
+        this.content = new Content();
         this.contentRepository = dataSource.getRepository(Content);
         this.metaNameRepository = dataSource.getRepository(MetaName);
         this.longTextStringRepository = dataSource.getRepository(LongTextMetaValue);
@@ -28,46 +30,39 @@ class QuestionService {
         this.metas.push(meta);
     }
 
+    public addKeyValueMeta(key: string, value: string) {
+        const newMeta = {
+            name: key,
+            value
+        };
+
+        this.metas.push(newMeta);
+    }
+
     public async save() {
-        const content = new Content();
-        await this.contentRepository.save(content);
+        await this.contentRepository.save(this.content);
 
-        const metaNameKind = new MetaName();
-        metaNameKind.meta_name = "kind";
-        metaNameKind.content = content;
-        await this.metaNameRepository.save(metaNameKind);
-
-        const contentValueKind = new LongTextMetaValue();
-        contentValueKind.string_meta_value = "question";
-        contentValueKind.metaName = metaNameKind;
-        await this.longTextStringRepository.save(contentValueKind);
-
-
-        const metaNameQuestion = new MetaName();
-        metaNameQuestion.meta_name = "question";
-        metaNameQuestion.content = content;
-        await this.metaNameRepository.save(metaNameQuestion);
-
-        const contentValueQuestion = new LongTextMetaValue();
-        contentValueQuestion.string_meta_value = this.question;
-        contentValueQuestion.metaName = metaNameQuestion;
-        await this.longTextStringRepository.save(contentValueQuestion);
-
+        await this.saveMetaValue("kind", "question");
+        await this.saveMetaValue("question", this.question);
         
         for (let i:number = 0; i < this.metas.length; i++) {
-            const metaName = new MetaName();
-            metaName.meta_name = this.metas[i].name;
-            metaName.content = content;
-            await this.metaNameRepository.save(metaName);
-
-            const contentValue = new LongTextMetaValue();
-            contentValue.string_meta_value = this.metas[i].value;
-            contentValue.metaName = metaName;
-            await this.longTextStringRepository.save(contentValue);
+            await this.saveMetaValue(this.metas[i].name, this.metas[i].value)
         }
 
         this.question = "";
         this.metas = [];
+    }
+
+    private async saveMetaValue(key: string, value: string) {
+        const metaName = new MetaName();
+        metaName.meta_name = key;
+        metaName.content = this.content;
+        await this.metaNameRepository.save(metaName);
+
+        const contentValue = new LongTextMetaValue();
+        contentValue.string_meta_value = value;
+        contentValue.metaName = metaName;
+        await this.longTextStringRepository.save(contentValue);
     }
 }
 

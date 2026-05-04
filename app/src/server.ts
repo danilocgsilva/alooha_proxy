@@ -31,7 +31,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     const date = new Date();
 
     const formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: "America/Sao_Paulo", // change to your target timezone
+      timeZone: "America/Sao_Paulo",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
