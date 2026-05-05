@@ -54,8 +54,11 @@ class MetricLifeCycle {
     }
 
     public digestChunk(chunk: Buffer): string {
-        if (this.beginTimeChunks === null) this.beginTimeChunks = new Date().getTime();
         const chunkResponse = MetricWorks.getDataChunk(chunk);
+        if ("" === chunkResponse) {
+            return "";
+        }
+        if (this.beginTimeChunks === null) this.beginTimeChunks = new Date().getTime();
         this.chunksAnswer.push(chunkResponse);
         return chunkResponse;
     }

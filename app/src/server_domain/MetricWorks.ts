@@ -54,7 +54,10 @@ class MetricWorks {
     static getDataChunk(responseChunk: Buffer): string {
         const chunkString = responseChunk.toString();
         const chunkParsed = JSON.parse(chunkString);
-        return chunkParsed.message.content;
+        if (chunkParsed.message) {
+            return chunkParsed.message.content;
+        }
+        return "";
     }
 }
 

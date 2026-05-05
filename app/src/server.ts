@@ -65,7 +65,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
-      if (requestIntentString === "question" && chunk.length > 0) {
+      if (requestIntentString === "question") {
         totalChunks++;
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
         logWritter.log(`-> chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
