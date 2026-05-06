@@ -35,7 +35,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     uuid = uuidv4();
     logWritter.log(`Uuid: ${uuid}`);
     logWritter.log(`Model choosed: ${questionAnatomy.model}`);
-    logWritter.log(`Timeout: ${timeout}`);
+    logWritter.log(`Timeout: ${timeout / 1000} seconds`);
+    // logWritter.log(`Timeout: 10.800 seconds`);
     
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
