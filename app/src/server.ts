@@ -25,6 +25,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const formatter = QuestionProcessingHelper.getFormatter();
   const formatterMilliseconds = QuestionProcessingHelper.getFormatterMilliseconds();
   let uuid: string;
+  const timeout = 1000 * 60 * 60 * 3;
 
   if (requestIntentString === "question") {
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
@@ -34,6 +35,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     uuid = uuidv4();
     logWritter.log(`Uuid: ${uuid}`);
     logWritter.log(`Model choosed: ${questionAnatomy.model}`);
+    logWritter.log(`Timeout: ${timeout}`);
     
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
@@ -52,8 +54,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       headers,
       body: req.body && req.body.length ? req.body : undefined,
 
-      headersTimeout: 1000 * 60 * 60 * 3,
-      bodyTimeout: 1000 * 60 * 60 * 3,
+      headersTimeout: timeout,
+      bodyTimeout: timeout,
     });
 
     res.status(statusCode);

@@ -1,12 +1,13 @@
 import QuestionService from "../database/services/QuestionService.js";
 import AnswerPerformance from "../types/AnswerPerformance.js";
 import { DataSource } from "typeorm";
+import QuestionAnatomy from "../types/QuestionAnatomy.js";
 
 class DatabaseSummarySaving {
     constructor(
         private appDataSource: DataSource,
         private answerPerformance: AnswerPerformance,
-        private model: string
+        private questionAnatomy: QuestionAnatomy
     ) { }
 
     public save() {
@@ -43,8 +44,15 @@ class DatabaseSummarySaving {
 
         questionService.addMeta({
             name: "model",
-            value: this.model
+            value: this.questionAnatomy.model
         });
+
+        if (this.questionAnatomy.systemPrompt) {
+            questionService.addMeta({
+                name: "system prompt",
+                value: this.questionAnatomy.systemPrompt
+            });
+        }
 
         questionService.save();
     }
