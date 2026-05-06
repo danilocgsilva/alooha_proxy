@@ -52,8 +52,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       headers,
       body: req.body && req.body.length ? req.body : undefined,
 
-      headersTimeout: 1000 * 60 * 60,
-      bodyTimeout: 1000 * 60 * 60,
+      headersTimeout: 1000 * 60 * 60 * 3,
+      bodyTimeout: 1000 * 60 * 60 * 3,
     });
 
     res.status(statusCode);
