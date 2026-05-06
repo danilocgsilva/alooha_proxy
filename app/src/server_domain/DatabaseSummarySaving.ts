@@ -5,7 +5,8 @@ import { DataSource } from "typeorm";
 class DatabaseSummarySaving {
     constructor(
         private appDataSource: DataSource,
-        private answerPerformance: AnswerPerformance
+        private answerPerformance: AnswerPerformance,
+        private model: string
     ) { }
 
     public save() {
@@ -38,6 +39,11 @@ class DatabaseSummarySaving {
             value: this.formatDifferenceToTimeFormat(
                 this.calculatesEndBeginTimeDifferenceMilliseconds() / 1000
             )
+        });
+
+        questionService.addMeta({
+            name: "model",
+            value: this.model
         });
 
         questionService.save();

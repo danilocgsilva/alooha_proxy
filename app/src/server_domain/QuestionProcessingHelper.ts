@@ -54,7 +54,7 @@ class QuestionProcessingHelper {
         const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
         const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
 
-        const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance);
+        const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy.model);
         databaseSummarySaving.save();
 
         logWritter.log("Saved to database");
