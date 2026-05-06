@@ -12,6 +12,14 @@ You access the endpoint served by this project exactly you do in Ollama. But thi
 
 The default address to access this server is http://localhost:11001, then make resquests with the same anatomy that you usually do when acessing Ollama.
 
+## What do you have here?
+
+Look to the `docker-compose.yml` file to see all services from this project. You have the following:
+
+* alooha_proxy: the main application server.
+* alooha_proxy_db: database to which the server connects and save the history of questions, answers and its performance.
+* alooha_proxy_pgadmin: actually you don't need it to make it work. It is just a convenience application for development, that is the PgAdmin. This appplications allow you to navigate more easily to the database, without depending upon a database client.
+
 ## Developing
 
 I am trying to use VS Codium as a primary development IDE tool.
