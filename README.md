@@ -51,3 +51,11 @@ Or in a more robust way, more distro agnostic:
 sudo chown -R $(id -u postgres 2>/dev/null || echo 999):$(id -g postgres 2>/dev/null || echo 999) ./alooha_proxy_db_data 
 ```
 
+Ollama server variables setted (just the suggestion, used while developing):
+
+```
+[Service]
+Environment="OLLAMA_HOST=0.0.0.0"
+Environment="OLLAMA_ORIGINS=*"
+Environment="OLLAMA_NUM_PARALLEL=2
+```
