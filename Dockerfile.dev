@@ -1,0 +1,22 @@
+FROM node:22.20.0
+
+RUN apt-get update && \
+    apt-get install -y sudo openssh-server && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN npm i -g typescript
+
+RUN mkdir -p /run/sshd
+
+RUN ssh-keygen -A
+
+RUN useradd -ms /bin/bash alooha && \
+    echo "alooha:password" | chpasswd && \
+    usermod -aG sudo alooha && \
+    echo "alooha ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+RUN chown -R alooha:alooha /home/alooha
+
+EXPOSE 22
+
+CMD ["/bin/bash", "-c", "/usr/sbin/sshd -D"]

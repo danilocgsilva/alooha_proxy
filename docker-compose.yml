@@ -2,17 +2,18 @@ services:
   alooha_proxy:
     build:
       context: .
+      dockerfile: Dockerfile.dev
     container_name: alooha_proxy
     env_file:
       - .env
     volumes:
-      - './app:/app'
+      - './app:/home/alooha/app'
     ports:
       - "8198:8000"
       - "11001:11001"
     extra_hosts:
     - "host.docker.internal:host-gateway"
-    working_dir: /app
+    working_dir: /home/alooha/app
   alooha_proxy_db:
     env_file:
       - .env
