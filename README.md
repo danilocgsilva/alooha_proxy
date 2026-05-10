@@ -4,13 +4,22 @@ A proxy to be in front of Ollama server, but capturing answer metrics and perfor
 
 You access the endpoint served by this project exactly you do in Ollama. But this one intercepts all requests and takes oportunity to log statistics and response performance.
 
-## Usage
+## How to run
 
 1. Copy `.env.example` to `.env`, and change the port if required.
-1. Compile the TypeScript.
-2. Run `dist/server.js`
+2. Execute the shell script `start_dev.sh` (do not using `docker compose up`, the explaination is coming up right after).
+3. Enter in the container. Both with `docker exec it alooha_proxy_dev bash` or `ssh alooha@localhost -p2222` are valid.
+4. Compile the TypeScript.
+5. Run `dist/server.js`
 
 The default address to access this server is http://localhost:11001, then make resquests with the same anatomy that you usually do when acessing Ollama.
+
+**Why not use the command `docker compos up --build` do start the environment?**: The `docker-compose.yml` have two conflicting environment services:
+
+* `alooha_proxy_dev`
+* `alooha_proxy`
+
+Therefore, both should not be run simulteneously. One is the environment setup for development environment (those that you may use first). Another is the environment for a production environment, which currently IS NOT WORKING.
 
 ## What do you have here?
 
