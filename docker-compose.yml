@@ -11,6 +11,7 @@ services:
     ports:
       - "8198:8000"
       - "11001:11001"
+      - "10001:22"
     extra_hosts:
     - "host.docker.internal:host-gateway"
     working_dir: /home/alooha/app
