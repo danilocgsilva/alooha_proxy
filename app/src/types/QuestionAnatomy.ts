@@ -1,9 +1,9 @@
 type QuestionAnatomy = {
     requestBody: string
     question: string,
-    systemPrompt?: string,
     url: string,
     model: string,
+    systemPrompt?: string,
 }
 
 export default QuestionAnatomy;

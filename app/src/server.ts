@@ -8,6 +8,7 @@ import LogConsole from "./server_domain/LogConsole.js";
 import { AppDataSource } from "./database/dataSource.js";
 import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
 import { v4 as uuidv4 } from 'uuid';
+import { log } from "node:console";
 
 const app = express();
 
@@ -31,12 +32,18 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
-    logWritter.log(`I got your question: ${questionAnatomy.question}`);
+    logWritter.log(`I got your question:`);
+    logWritter.log("=============================");
+    logWritter.log(questionAnatomy.question);
     uuid = uuidv4();
     logWritter.log(`Uuid: ${uuid}`);
+    if (questionAnatomy.systemPrompt) {
+      logWritter.log("System prompt:");
+      logWritter.log("==========");
+      logWritter.log(questionAnatomy.systemPrompt);
+    }
     logWritter.log(`Model choosed: ${questionAnatomy.model}`);
     logWritter.log(`Timeout: ${timeout / 1000} seconds`);
-    // logWritter.log(`Timeout: 10.800 seconds`);
     
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
