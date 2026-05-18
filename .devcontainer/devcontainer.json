@@ -1,7 +1,6 @@
 {
     "name": "alooha_proxy",
-    "dockerComposeFile": "../docker-compose.yml",
-    "service": "alooha_proxy",
-    "workspaceFolder": "/app",
-    "forwardPorts": [9229]
+    "dockerComposeFile": "../docker-compose-dev.yml",
+    "service": "alooha_proxy_dev",
+    "workspaceFolder": "/app"
 }
