@@ -29,6 +29,7 @@ services:
       - "5432:5432"
     volumes:
       - './alooha_proxy_db_data:/var/lib/postgresql/data'
+      - './backups:/backups'
   alooha_proxy_pgadmin:
     image: dpage/pgadmin4:8
     container_name: alooha_proxy_pgadmin

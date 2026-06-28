@@ -4,3 +4,4 @@ node_modules/**/*
 app/node_modules/**/*
 app/dist/**/*
 alooha_proxy_db_data/**/*
+backups/**/*
