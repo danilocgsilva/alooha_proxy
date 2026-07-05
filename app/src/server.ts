@@ -8,7 +8,6 @@ import LogConsole from "./server_domain/LogConsole.js";
 import { AppDataSource } from "./database/dataSource.js";
 import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
 import { v4 as uuidv4 } from 'uuid';
-import { log } from "node:console";
 
 const app = express();
 
@@ -76,14 +75,18 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     let totalBytes = 0;
     let totalChunks = 0;
+    let hasStartedStreaming = false;
 
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
+      hasStartedStreaming = true;
       if (requestIntentString === "question") {
-        totalChunks++;
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
-        logWritter.log(`-> chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
-        logWritter.log(`--->${chunksResponse}<---`);
+        if ("" !== chunksResponse) {
+          totalChunks++;
+          logWritter.log(`-> chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
+          logWritter.log(`--->${chunksResponse}<---`);
+        }
       }
     });
 
@@ -123,11 +126,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     });
 
     res.on("close", () => {
-      if (res.writableEnded) {
-        return;
-      }
-
-      if (!completed) {
+      if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
         logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
       }
 

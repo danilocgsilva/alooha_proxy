@@ -92,6 +92,10 @@ class QuestionProcessingHelper {
         return `Request cancelled by client. Intent: ${intent}`;
     }
 
+    public static shouldLogCancellationMessage(completed: boolean, hasStartedStreaming: boolean) {
+        return !completed && !hasStartedStreaming;
+    }
+
 }
 
 export default QuestionProcessingHelper;
