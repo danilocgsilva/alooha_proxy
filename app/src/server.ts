@@ -50,12 +50,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
-  } else if (requestIntentString === "listModels") {
-    logWritter.log("I got a request to list available models.");
-  } else if (requestIntentString === "option") {
-    logWritter.log("I got an OPTIONS request.");
-  } else {
-    logWritter.log(`I got an untracked request: ${req.method} ${req.originalUrl}`);
   }
 
   logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
@@ -94,12 +88,9 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     });
 
     body.on("error", (err) => {
+      logWritter.log("OOPS! An error!");
       console.error("Stream error:", err);
       res.destroy(err);
-    });
-
-    res.on("close", () => {
-      body.destroy();
     });
 
     body.pipe(res);
@@ -122,14 +113,23 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
           totalChunks,
           logWritter
         );
-      } else {
-        logWritter.log("Request completed without question-specific metrics.");
       }
     };
 
-    body.on("end", finishQuestionIfNeeded);
+    body.on("end", () => {
+      logWritter.log("End body event emitted.");
+      if (!completed) {
+        finishQuestionIfNeeded();
+      }
+    });
 
     res.on("close", () => {
+      try {
+        body.destroy();
+      } catch (err) {
+        console.error("Failed to destroy upstream body:", err);
+      }
+
       if (!completed) {
         finishQuestionIfNeeded();
       }
