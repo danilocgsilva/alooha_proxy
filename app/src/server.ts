@@ -50,7 +50,15 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
+  } else if (requestIntentString === "listModels") {
+    logWritter.log("I got a request to list available models.");
+  } else if (requestIntentString === "option") {
+    logWritter.log("I got an OPTIONS request.");
+  } else {
+    logWritter.log(`I got an untracked request: ${req.method} ${req.originalUrl}`);
   }
+
+  logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
 
   try {
     const headers = { ...req.headers };
@@ -98,21 +106,25 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     let completed = false;
     const finishQuestionIfNeeded = () => {
-      if (completed || requestIntentString !== "question") {
+      if (completed) {
         return;
       }
 
       completed = true;
       logWritter.log("===> End event reached <===");
-      logWritter.log(`Intent: ${requestIntentString}`);
+      logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
 
-      QuestionProcessingHelper.finishQuestion(
-        metricLifeCycle,
-        questionAnatomy,
-        totalBytes,
-        totalChunks,
-        logWritter
-      );
+      if (requestIntentString === "question") {
+        QuestionProcessingHelper.finishQuestion(
+          metricLifeCycle,
+          questionAnatomy,
+          totalBytes,
+          totalChunks,
+          logWritter
+        );
+      } else {
+        logWritter.log("Request completed without question-specific metrics.");
+      }
     };
 
     body.on("end", finishQuestionIfNeeded);

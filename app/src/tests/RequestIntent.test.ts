@@ -9,6 +9,13 @@ const mockRequest = (url: string, body: string) =>
     } as unknown as express.Request);
 
 describe("RequestIntent", () => {
+    it("recognizes list-model requests", () => {
+        const request = mockRequest("/api/tags", "");
+        const requestIntent: RequestIntent = new RequestIntent(request);
+
+        expect(requestIntent.getIntent()).toBe("listModels");
+    });
+
     it("Get the question afterwards", () => {
         const requestBodyContentString = {
             "model": "gemma3:4b",
