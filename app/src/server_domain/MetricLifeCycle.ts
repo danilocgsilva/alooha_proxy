@@ -20,6 +20,7 @@ class MetricLifeCycle {
         const now = new Date();
         const milliseconds = now.getTime();
         this.beginTimeMilliseconds = milliseconds;
+        this.beginTimeChunks = milliseconds;
         this.isBegan = true;
     }
 
@@ -39,14 +40,17 @@ class MetricLifeCycle {
         questionAnatomy: QuestionAnatomy,
         totalChunks: number
     ) : AnswerPerformance {
-        if (!this.isBegan || this.beginTimeChunks === null) { 
+        if (!this.isBegan || this.beginTimeMilliseconds === undefined) {
             throw new Error("The measurement did never start.");
         }
+
+        const beginTimeChunks = this.beginTimeChunks ?? this.beginTimeMilliseconds;
+
         return {
             question: questionAnatomy.question,
             answer: this.getFullAnswer(), 
             beginUnixEpochTimestamp: this.beginTimeMilliseconds,
-            beginUnixEpochTimestampChunks: this.beginTimeChunks,
+            beginUnixEpochTimestampChunks: beginTimeChunks,
             endUnixEpochTimestamp: this.endTimeMilliseconds,
             bytesSize,
             totalChunks
@@ -58,7 +62,9 @@ class MetricLifeCycle {
         if ("" === chunkResponse) {
             return "";
         }
-        if (this.beginTimeChunks === null) this.beginTimeChunks = new Date().getTime();
+        if (this.beginTimeChunks === null) {
+            this.beginTimeChunks = new Date().getTime();
+        }
         this.chunksAnswer.push(chunkResponse);
         return chunkResponse;
     }

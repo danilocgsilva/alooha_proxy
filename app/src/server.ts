@@ -32,9 +32,11 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
+
     logWritter.log(`I got your question:`);
     logWritter.log("=============================");
     logWritter.log(questionAnatomy.question);
+
     uuid = uuidv4();
     logWritter.log(`Uuid: ${uuid}`);
     if (questionAnatomy.systemPrompt) {
@@ -94,18 +96,30 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     body.pipe(res);
 
-    body.on("end", () => {
+    let completed = false;
+    const finishQuestionIfNeeded = () => {
+      if (completed || requestIntentString !== "question") {
+        return;
+      }
+
+      completed = true;
       logWritter.log("===> End event reached <===");
       logWritter.log(`Intent: ${requestIntentString}`);
 
-      if (requestIntentString === "question") {
-        QuestionProcessingHelper.finishQuestion(
-          metricLifeCycle, 
-          questionAnatomy, 
-          totalBytes, 
-          totalChunks, 
-          logWritter
-        );
+      QuestionProcessingHelper.finishQuestion(
+        metricLifeCycle,
+        questionAnatomy,
+        totalBytes,
+        totalChunks,
+        logWritter
+      );
+    };
+
+    body.on("end", finishQuestionIfNeeded);
+
+    res.on("close", () => {
+      if (!completed) {
+        finishQuestionIfNeeded();
       }
     });
   } catch (err) {
