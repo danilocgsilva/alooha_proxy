@@ -60,10 +60,26 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     delete headers["content-length"];
     delete headers.connection;
 
+    const upstreamAbortController = new AbortController();
+    let upstreamAborted = false;
+
+    const stopUpstream = () => {
+      if (upstreamAborted) {
+        return;
+      }
+
+      upstreamAborted = true;
+      upstreamAbortController.abort();
+    };
+
+    req.on("aborted", stopUpstream);
+    res.on("close", stopUpstream);
+
     const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
       headers,
       body: req.body && req.body.length ? req.body : undefined,
+      signal: upstreamAbortController.signal,
 
       headersTimeout: timeout,
       bodyTimeout: timeout,
