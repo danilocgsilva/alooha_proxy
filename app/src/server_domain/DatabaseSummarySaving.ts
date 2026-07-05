@@ -47,6 +47,11 @@ class DatabaseSummarySaving {
             value: this.questionAnatomy.model
         });
 
+        questionService.addMeta({
+            name: "proxy_version",
+            value: "alooha_proxy_1.6.0"
+        });
+
         if (this.questionAnatomy.systemPrompt) {
             questionService.addMeta({
                 name: "system prompt",
