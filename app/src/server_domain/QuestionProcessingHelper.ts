@@ -88,7 +88,9 @@ class QuestionProcessingHelper {
         return formatter;
     }
 
-
+    public static getRequestCancellationMessage(intent: string) {
+        return `Request cancelled by client. Intent: ${intent}`;
+    }
 
 }
 

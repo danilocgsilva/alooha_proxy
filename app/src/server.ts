@@ -103,7 +103,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
       completed = true;
       logWritter.log("===> End event reached <===");
-      logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
 
       if (requestIntentString === "question") {
         QuestionProcessingHelper.finishQuestion(
@@ -124,6 +123,14 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     });
 
     res.on("close", () => {
+      if (res.writableEnded) {
+        return;
+      }
+
+      if (!completed) {
+        logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
+      }
+
       try {
         body.destroy();
       } catch (err) {
