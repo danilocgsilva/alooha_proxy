@@ -1,0 +1,17 @@
+^/app/node_modules
+^/app/dist
+^/README.md
+^/.gitignore
+^/.env
+^/Psql.Dockerfile
+^/backups
+^/.devcontainer
+^/app/.vscode
+^/app/src/tests
+^/.vscode
+^/chat.md
+^/Dockerfile
+^/docker-compose-dev.yml
+^/.app-string-ignore
+^/docker-compose-prod.yml
+^/Dockerfile.dev
