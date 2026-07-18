@@ -25,7 +25,7 @@ class HistoryStats {
         ORDER BY count DESC
       `);
 
-      return result;
+      return result as ModelCount[];
     } finally {
       await this.queryRunner.release();
     }
