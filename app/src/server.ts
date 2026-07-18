@@ -27,6 +27,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   let uuid: string;
   const timeout = 1000 * 60 * 60 * 3;
 
+  if (requestIntentString === "alooha_stats") {
+    return res.status(200).json({message: "stats2"})
+  }
+
   if (requestIntentString === "question") {
     questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
     metricLifeCycle.setWhenBegan();
@@ -156,6 +160,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
         finishQuestionIfNeeded();
       }
     });
+
   } catch (err) {
     console.error("Proxy error:", err);
     res.status(502).json({ error: "Bad Gateway" });

@@ -7,7 +7,12 @@ class RequestIntent {
         this.request = request;
     }
 
-    public getIntent(): "listModels" | "question" | "option" | "" {
+    public getIntent(): 
+        "listModels" | 
+        "question" | 
+        "option" | 
+        "alooha_stats" |
+        "" {
         if (this.request.method === "OPTIONS") {
             return "option";
         }
@@ -16,6 +21,9 @@ class RequestIntent {
         }
         if (this.request.originalUrl === "/api/chat" || this.request.originalUrl === "/api/generate") {
             return "question";
+        }
+        if (this.request.originalUrl === "/alooha_api/stats") {
+            return "alooha_stats";
         }
         return ""
     }
