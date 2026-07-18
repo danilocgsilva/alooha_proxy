@@ -1,10 +1,6 @@
 import { AppDataSource } from "../dataSource";
 import { QueryRunner } from "typeorm";
-
-interface ModelCount {
-  count: number;
-  string_meta_value: string;
-}
+import { ModelCount } from "../../types/ModelCount";
 
 class HistoryStats {
   private queryRunner: QueryRunner;
@@ -20,7 +16,7 @@ class HistoryStats {
       const result = await this.queryRunner.query(`
         SELECT
             COUNT(*) as count,
-            ltmv.string_meta_value
+            ltmv.string_meta_value as model
         FROM contents c
         LEFT JOIN meta_names nm ON nm.content_id = c.id
         LEFT JOIN long_text_meta_value ltmv ON ltmv.meta_names_id = nm.id
@@ -36,4 +32,4 @@ class HistoryStats {
   }
 }
 
-export default new HistoryStats();
+export default HistoryStats;

@@ -8,6 +8,7 @@ import LogConsole from "./server_domain/LogConsole.js";
 import { AppDataSource } from "./database/dataSource.js";
 import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
 import { v4 as uuidv4 } from 'uuid';
+import HistoryStats from "./database/services/HistoryStats.js";
 
 const app = express();
 
@@ -27,8 +28,12 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   let uuid: string;
   const timeout = 1000 * 60 * 60 * 3;
 
+  logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
+
   if (requestIntentString === "alooha_stats") {
-    return res.status(200).json({message: "stats2"})
+    let historyStats = new HistoryStats();
+    let statsData = await historyStats.getModelCounts();
+    return res.status(200).json({message: statsData});
   }
 
   if (requestIntentString === "question") {
@@ -54,8 +59,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
   }
-
-  logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
 
   try {
     const headers = { ...req.headers };
