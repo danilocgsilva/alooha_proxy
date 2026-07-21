@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { LogEntry, LogLevel } from './types/LogEntry';
 import { LoggerConfig } from './types/LoggerConfig';
 
-// Base logger class
 export class LogProvider {
   private logger: any;
   private config: LoggerConfig;

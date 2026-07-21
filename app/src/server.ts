@@ -5,10 +5,12 @@ import MetricWorks from "./server_domain/MetricWorks.js";
 import MetricLifeCycle from "./server_domain/MetricLifeCycle.js";
 import RequestIntent from "./server_domain/RequestIntent.js";
 import LogConsole from "./server_domain/LogConsole.js";
+import LogImplementation from "./server_domain/LogImplementation.js";
 import { AppDataSource } from "./database/dataSource.js";
 import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
 import { v4 as uuidv4 } from 'uuid';
 import HistoryStats from "./database/services/HistoryStats.js";
+// import { logger, requestLogger } from './logger.js';
 
 const app = express();
 
@@ -24,7 +26,8 @@ app.use((req, res, next) => {
 const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11434"}`;
 
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
-  const logWritter = new LogConsole();
+  // const logWritter = new LogConsole();
+  const logWritter = new LogImplementation();
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
   const metricLifeCycle = new MetricLifeCycle();
   let questionAnatomy: QuestionAnatomy | null = null;
