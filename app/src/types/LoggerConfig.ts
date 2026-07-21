@@ -2,7 +2,7 @@ export interface LoggerConfig {
   stdout?: boolean;
   file?: {
     filename: string;
-    maxSize?: string;
+    maxSize?: number;
     maxFiles?: number;
   };
   database?: {

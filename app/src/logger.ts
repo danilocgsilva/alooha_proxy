@@ -20,9 +20,9 @@ export class LogProvider {
   }
 
   private getFormat(): any {
-    const { format = 'simple' } = this.config;
+    const { format: formatOption = 'simple' } = this.config;
     
-    if (format === 'json') {
+    if (formatOption === 'json') {
       return format.json();
     }
     
@@ -47,7 +47,7 @@ export class LogProvider {
     if (this.config.file) {
       transportsArray.push(new transports.File({
         filename: this.config.file.filename,
-        maxsize: this.config.file.maxSize || '50m',
+        maxsize: this.config.file.maxSize || 1024 * 1024 * 50,
         maxFiles: this.config.file.maxFiles || 5,
         format: this.getFormat(),
       }));
@@ -151,7 +151,7 @@ export const logger = new LogProvider({
   stdout: true,
   file: {
     filename: 'logs/app.log',
-    maxSize: '50m',
+    maxSize: 1024 * 1024 * 50,
     maxFiles: 5,
   },
 });
