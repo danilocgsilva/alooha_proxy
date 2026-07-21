@@ -25,10 +25,16 @@ export class LogProvider {
       return format.json();
     }
     
+    // return format.combine(
+    //   format.timestamp(),
+    //   format.errors({ stack: true }),
+    //   format.prettyPrint()
+    // );
     return format.combine(
       format.timestamp(),
-      format.errors({ stack: true }),
-      format.prettyPrint()
+      format.printf(({ timestamp, level, message, meta }) => {
+        return `${timestamp} [${level}] ${message} ${meta ? JSON.stringify(meta) : ''}`;
+      })
     );
   }
 

@@ -34,4 +34,5 @@ export const logger = new LogProvider({
     maxSize: 1024 * 1024 * 50,
     maxFiles: 5,
   },
+  format: 'simple',
 });
