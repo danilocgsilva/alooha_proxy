@@ -17,7 +17,9 @@
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
     "typeorm": "^0.3.28",
-    "undici": "^8.1.0"
+    "undici": "^8.1.0",
+    "uuid": "^14.0.1",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
