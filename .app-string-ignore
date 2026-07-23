@@ -15,3 +15,4 @@
 ^/.app-string-ignore
 ^/docker-compose-prod.yml
 ^/Dockerfile.dev
+^/app/logs/app.log
