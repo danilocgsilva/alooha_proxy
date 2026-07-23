@@ -54,7 +54,8 @@ describe("QuestionService", () => {
         expect(await metaNameRepository.count()).toBe(2);
         expect(await longTextMetaValueRepository.count()).toBe(2);
 
-        const saved = await testDataSource.getRepository(LongTextMetaValue).findOne({ where: { string_meta_value: "What is the capital of France?" } });
+        const saved = await testDataSource.getRepository(LongTextMetaValue)
+            .findOne({ where: { string_meta_value: "What is the capital of France?" } });
         expect(saved?.string_meta_value).toBe("What is the capital of France?");
     });
 

@@ -68,9 +68,10 @@ describe("MetricWorks.getAnatomy", () => {
         expect(() => MetricWorks.getDataChunk(chunk)).toThrow();
     });
 
-    it("throws when message property is missing", () => {
+    it("Return empty string when missing data", () => {
         const testRecords = { other: "data" };
         const chunk = Buffer.from(JSON.stringify(testRecords));
-        expect(() => MetricWorks.getDataChunk(chunk)).toThrow();
+        const emptyString = MetricWorks.getDataChunk(chunk);
+        expect(emptyString).toBe("");
     });
 });

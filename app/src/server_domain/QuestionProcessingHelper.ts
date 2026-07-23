@@ -3,7 +3,6 @@ import LogConsole from "./LogConsole.js";
 import type QuestionAnatomy from "../types/QuestionAnatomy.js";
 import MetricLifeCycle from "./MetricLifeCycle.js";
 import FriendlyPerformanceSummary from "../domain/FriendlyPerformanceSummary.js";
-import QuestionService from "../database/services/QuestionService.js";
 import { AppDataSource } from "../database/dataSource.js";
 import DatabaseSummarySaving from "./DatabaseSummarySaving.js";
 
