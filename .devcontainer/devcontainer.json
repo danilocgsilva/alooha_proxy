@@ -2,5 +2,5 @@
     "name": "alooha_proxy",
     "dockerComposeFile": "../docker-compose-dev.yml",
     "service": "alooha_proxy_dev",
-    "workspaceFolder": "/app"
+    "workspaceFolder": "/home/alooha/app"
 }
