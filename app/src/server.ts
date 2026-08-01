@@ -75,17 +75,25 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     const upstreamAbortController = new AbortController();
     let upstreamAborted = false;
 
-    const stopUpstream = () => {
+    req.on("aborted", () => {
+      logWritter.log("Abort signal received.");
       if (upstreamAborted) {
         return;
       }
 
       upstreamAborted = true;
       upstreamAbortController.abort();
-    };
+    });
 
-    req.on("aborted", stopUpstream);
-    res.on("close", stopUpstream);
+    res.on("close", () => {
+      logWritter.log("Close signal received.");
+      if (upstreamAborted) {
+        return;
+      }
+
+      upstreamAborted = true;
+      upstreamAbortController.abort();
+    });
 
     const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
