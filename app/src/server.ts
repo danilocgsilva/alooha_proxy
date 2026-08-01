@@ -9,7 +9,7 @@ import { AppDataSource } from "./database/dataSource.js";
 import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.js";
 import { v4 as uuidv4 } from 'uuid';
 import HistoryStats from "./database/services/HistoryStats.js";
-// import { logger, requestLogger } from './logger.js';
+import ServerDomain from "./domain/ServerDomain.js";
 
 const app = express();
 
@@ -28,6 +28,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const formatterMilliseconds = QuestionProcessingHelper.getFormatterMilliseconds();
   let uuid: string;
   const timeout = 1000 * 60 * 60 * 3;
+  const serverDomain = new ServerDomain(logWritter, metricLifeCycle);
+
 
   const headers = { ...req.headers };
 
@@ -135,29 +137,17 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     body.pipe(res);
 
     let completed = false;
-    const finishQuestionIfNeeded = () => {
-      if (completed) {
-        return;
-      }
-
-      completed = true;
-      logWritter.log("===> End event reached <===");
-
-      if (requestIntentString === "question") {
-        QuestionProcessingHelper.finishQuestion(
-          metricLifeCycle,
-          questionAnatomy,
-          totalBytes,
-          totalChunks,
-          logWritter
-        );
-      }
-    };
 
     body.on("end", () => {
       logWritter.log("End body event emitted.");
       if (!completed) {
-        finishQuestionIfNeeded();
+        serverDomain.finishQuestionIfNeeded(
+          completed, 
+          requestIntentString, 
+          questionAnatomy,
+          totalBytes,
+          totalChunks
+        );
       }
     });
 
@@ -173,7 +163,13 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       }
 
       if (!completed) {
-        finishQuestionIfNeeded();
+        completed = serverDomain.finishQuestionIfNeeded(
+          completed, 
+          requestIntentString, 
+          questionAnatomy,
+          totalBytes,
+          totalChunks
+        );
       }
     });
 
