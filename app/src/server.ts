@@ -75,27 +75,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
   try {
     const upstreamAbortController = new AbortController();
-    let upstreamAborted = false;
-
-    req.on("aborted", () => {
-      logWritter.log("Abort signal received.");
-      if (upstreamAborted) {
-        return;
-      }
-
-      upstreamAborted = true;
-      upstreamAbortController.abort();
-    });
-
-    res.on("close", () => {
-      logWritter.log("Close signal received.");
-      if (upstreamAborted) {
-        return;
-      }
-
-      upstreamAborted = true;
-      upstreamAbortController.abort();
-    });
 
     const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
@@ -129,8 +108,13 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     });
 
     body.on("error", (err) => {
-      logWritter.log("OOPS! An error!");
-      console.error("Stream error:", err);
+      const codeString = (err as NodeJS.ErrnoException).code;
+      if (codeString === 'UND_ERR_ABORTED') {
+        logWritter.log("Aborted by user or the client has been closed.");
+      } else {
+        logWritter.log("OOPS! An error!");
+        console.error("Stream error:", err);
+      }
       res.destroy(err);
     });
 
@@ -141,7 +125,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     body.on("end", () => {
       logWritter.log("End body event emitted.");
       if (!completed) {
-        serverDomain.finishQuestionIfNeeded(
+        completed = serverDomain.finishQuestionIfNeeded(
           completed, 
           requestIntentString, 
           questionAnatomy,

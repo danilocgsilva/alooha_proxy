@@ -33,6 +33,6 @@ export default class ServerDomain {
         this.logWritter
       );
     }
-    return true;
+    return completed;
   }
 }
