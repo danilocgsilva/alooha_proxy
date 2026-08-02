@@ -30,7 +30,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const timeout = 1000 * 60 * 60 * 3;
   const serverDomain = new ServerDomain(logWritter, metricLifeCycle);
 
-
   const headers = { ...req.headers };
 
   delete headers.host;
@@ -75,6 +74,34 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
   try {
     const upstreamAbortController = new AbortController();
+    let upstreamAborted = false;
+
+    req.on("aborted", () => {
+      logWritter.log("Abort signal received.");
+      if (upstreamAborted) {
+        return;
+      }
+
+      upstreamAborted = true;
+      upstreamAbortController.abort();
+    });
+
+    res.on("close", () => {
+      if (requestIntentString === 'option') {
+        return;
+      }
+      logWritter.log("Close signal received.");
+      if (upstreamAborted) {
+        return;
+      }
+
+      upstreamAborted = true;
+      upstreamAbortController.abort();
+    });
+
+    res.on("error", () => {
+      console.log("Error from response.");
+    });
 
     const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
@@ -109,7 +136,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     body.on("error", (err) => {
       const codeString = (err as NodeJS.ErrnoException).code;
-      if (codeString === 'UND_ERR_ABORTED') {
+      const errorName = (err as NodeJS.ErrnoException).name;
+      const abortErrorCodeString = codeString === 'UND_ERR_ABORTED';
+      const abortErrorName = errorName === 'AbortError';
+      if (abortErrorCodeString || abortErrorName) {
         logWritter.log("Aborted by user or the client has been closed.");
       } else {
         logWritter.log("OOPS! An error!");
