@@ -1,7 +1,7 @@
-## Question
+## Question 
 
 Look to my reverse proxy server
-```ts
+```
 import express from "express";
 import { request } from "undici";
 import type QuestionAnatomy from "./types/QuestionAnatomy.js";
@@ -246,26 +246,20 @@ app.listen(portToServe, "0.0.0.0", () => {
   console.log(`Proxy running on :${portToServe.toString()}`);
 });
 ```
-The idea here is, when providing the `releaseClient` flag, the Ollama might continue to stream answer, and the reverse proxy code might also continue to read and process the chunks received from upstream even of the client get closed. Then, at the end, the `finishQuestionIfNeeded` method is executed at the end of the answer streamed (even after the client is closed). Currently, it is working nicely if the client keeps open and the `releaseClient` is not provided but also need to work with `releaseClient` flag.
-
-How to fix it?
+Look to the `releaseClient` flag. When provided, this flag, suposedly, should continue to process the upstream streamed response, but actually it is not hapenning. Maybe the upstream continue to stream the answer, but the proxy currenctly do not process anything, but should keep processing up to the end of the answer, where the finishQuestionIfNeeded method is triggered to save the processing data, even after the client is closed.
+What is wrong to this code? What must I do to make the reverse proxy continue its processing after the client is closed?
 
 ## System prompt
 
 You are a experienced TypeScript and web developer.
-Keep the current coding style.
+Pay atention to what I wrote in the prompt. The code might not do exactly what is supposed and you need to spot the understand and spot the problem that I am experiencing.
+Also, when showing code, output the whole code.
 
 ## Answer
 
-# Reverse Proxy Server - Client Release Fix
+The issue with your current implementation is that when `releaseClient` is true, you're still attaching the `close` event listener to the response, which can cause premature cleanup of the upstream stream. Additionally, there are some logical inconsistencies in how the stream handling and cleanup work.
 
-Looking at your reverse proxy server code, I can see the issue. When `X-Release-Client` is set to "true", you want the proxy to continue processing even after the client disconnects, but there are several problems with how this is currently handled:
-
-1. The close event handler for the response (`res.on("close")`) is still attached even when `releaseClient` is true
-2. The logic for determining when to call `finishQuestionIfNeeded` isn't properly handling the release client scenario
-3. There's a race condition where the stream might end before we can properly process the completion
-
-Here's the fixed version of your code with proper client release handling:
+Here's the corrected version of your code with the necessary changes:
 
 ```typescript
 import express from "express";
@@ -366,7 +360,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       upstreamAbortController.abort();
     });
 
-    // Only handle close event if releaseClient is false
+    // Handle close event for cleanup
     const handleCloseEvent = () => {
       if (requestIntentString === 'option') return;
 
@@ -376,7 +370,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       upstreamAbortController.abort();
     };
 
-    // Only attach close handler if not releasing client
+    // Only attach close handler for response when NOT releasing client
     if (!releaseClient) {
       res.on("close", handleCloseEvent);
     }
@@ -399,8 +393,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     let totalChunks = 0;
     let hasStartedStreaming = false;
     let completed = false;
-    let responseEnded = false;
 
+    // Process chunks regardless of client connection state
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
       hasStartedStreaming = true;
@@ -437,25 +431,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       }
     });
 
+    // For releaseClient=true, we still need to pipe the response but not destroy it
     body.pipe(res);
 
-    // Handle response end for cleanup
-    body.on("end", () => {
-      logWritter.log("End body event emitted.");
-      responseEnded = true;
-      
-      if (!completed) {
-        completed = serverDomain.finishQuestionIfNeeded(
-          completed,
-          requestIntentString,
-          questionAnatomy,
-          totalBytes,
-          totalChunks
-        );
-      }
-    });
-
-    // Handle response close for cleanup only when not releasing client
+    // Handle response close for cleanup only when NOT releasing client
     if (!releaseClient) {
       res.on("close", () => {
         if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
@@ -479,15 +458,9 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
         }
       });
     } else {
-      // When releaseClient is true, we want to process cleanup only when response ends
-      const cleanupHandler = () => {
-        try {
-          body.destroy();
-        } catch (err) {
-          console.error("Failed to destroy upstream body:", err);
-        }
-        
-        if (!completed && responseEnded) {
+      // When releaseClient is true, we still want to process the end event for cleanup
+      body.on("end", () => {
+        if (!completed) {
           completed = serverDomain.finishQuestionIfNeeded(
             completed,
             requestIntentString,
@@ -496,12 +469,22 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
             totalChunks
           );
         }
-      };
-
-      // Listen for both close and finish events
-      res.on("close", cleanupHandler);
-      res.on("finish", cleanupHandler);
+      });
     }
+
+    // Handle end event for all cases to ensure cleanup
+    body.on("end", () => {
+      logWritter.log("End body event emitted.");
+      if (!completed) {
+        completed = serverDomain.finishQuestionIfNeeded(
+          completed,
+          requestIntentString,
+          questionAnatomy,
+          totalBytes,
+          totalChunks
+        );
+      }
+    });
 
   } catch (err) {
     console.error("Proxy error:", err);
@@ -517,30 +500,26 @@ app.listen(portToServe, "0.0.0.0", () => {
 });
 ```
 
-## Key Changes Made:
+Key changes made:
 
-1. **Proper Response Cleanup Handling**: 
-   - When `releaseClient` is true, I've added a more robust cleanup approach that listens to both `close` and `finish` events
-   - The cleanup only happens when the response has actually ended (`responseEnded = true`)
+1. **Fixed the `releaseClient` logic**: The main issue was that we were still attaching close event listeners to the response even when `releaseClient` is true, which could cause premature cleanup.
 
-2. **Improved Completion Logic**:
-   - Added `responseEnded` flag to track when the upstream response has completely finished
-   - Ensured `finishQuestionIfNeeded` is only called once, after the response ends and completion hasn't already occurred
+2. **Proper stream handling for `releaseClient=true`**: When `releaseClient` is true:
+   - We continue to process the upstream stream (no early destruction)
+   - We still pipe the response to the client
+   - But we don't attach close listeners that would destroy the body when the client disconnects
+   - The cleanup happens only on the "end" event of the upstream stream
 
-3. **Consistent Cleanup**:
-   - When `releaseClient` is true, we don't attach the close handler to the response, but we still ensure proper cleanup when the stream finishes
-   - The `cleanupHandler` function handles both `close` and `finish` events appropriately
+3. **Ensured `completed` flag management**: The `completed` flag is now properly initialized at the beginning and used consistently.
 
-4. **Race Condition Prevention**:
-   - Ensured that `finishQuestionIfNeeded` is only called once, even if multiple events fire
-   - Used the `completed` flag to prevent duplicate calls
+4. **Stream end handling**: We ensure that the `finishQuestionIfNeeded` is called in all cases, both when client disconnects and when stream ends normally.
 
-This implementation ensures that when `X-Release-Client: true` is set:
-1. The client connection is immediately released after the initial request
-2. Processing continues in the background
-3. Cleanup happens properly when the response completes
-4. `finishQuestionIfNeeded` is called exactly once with all the correct data
+5. **Maintained backward compatibility**: When `releaseClient` is false, behavior remains exactly the same as before.
 
-The fix maintains backward compatibility while correctly handling the release client scenario.
+The key insight is that when `releaseClient=true`, you want to:
+- Continue processing the upstream stream 
+- Still send data to the client
+- But don't destroy the upstream stream if the client disconnects (because you want to continue processing)
+- Only perform cleanup when the upstream stream actually ends
 
-
+This ensures that long-running operations continue even after the client disconnects, which is the intended behavior for `releaseClient=true`.
