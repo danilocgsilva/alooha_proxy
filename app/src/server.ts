@@ -86,18 +86,20 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       upstreamAbortController.abort();
     });
 
-    res.on("close", () => {
+    // Only handle close event if releaseClient is false
+    const handleCloseEvent = () => {
       if (requestIntentString === 'option') return;
 
       logWritter.log("Close signal received.");
       if (upstreamAborted) return;
       upstreamAborted = true;
       upstreamAbortController.abort();
-    });
+    };
 
-    res.on("error", () => {
-      console.log("Error from response.");
-    });
+    // Only attach close handler if not releasing client
+    if (!releaseClient) {
+      res.on("close", handleCloseEvent);
+    }
 
     const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
@@ -170,27 +172,52 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       }
     });
 
-    res.on("close", () => {
-      if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
-        logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
-      }
+    // Handle response close for cleanup only when not releasing client
+    if (!releaseClient) {
+      res.on("close", () => {
+        if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
+          logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
+        }
 
-      try {
-        body.destroy();
-      } catch (err) {
-        console.error("Failed to destroy upstream body:", err);
-      }
+        try {
+          body.destroy();
+        } catch (err) {
+          console.error("Failed to destroy upstream body:", err);
+        }
 
-      if (!completed) {
-        completed = serverDomain.finishQuestionIfNeeded(
-          completed,
-          requestIntentString,
-          questionAnatomy,
-          totalBytes,
-          totalChunks
-        );
-      }
-    });
+        if (!completed) {
+          completed = serverDomain.finishQuestionIfNeeded(
+            completed,
+            requestIntentString,
+            questionAnatomy,
+            totalBytes,
+            totalChunks
+          );
+        }
+      });
+    } else {
+      // When releaseClient is true, we still want to process the end event for cleanup
+      res.on("close", () => {
+        try {
+          body.destroy();
+        } catch (err) {
+          console.error("Failed to destroy upstream body:", err);
+        }
+      });
+
+      // For releaseClient=true, we still need to ensure cleanup happens on stream end
+      body.on("end", () => {
+        if (!completed) {
+          completed = serverDomain.finishQuestionIfNeeded(
+            completed,
+            requestIntentString,
+            questionAnatomy,
+            totalBytes,
+            totalChunks
+          );
+        }
+      });
+    }
 
   } catch (err) {
     console.error("Proxy error:", err);
