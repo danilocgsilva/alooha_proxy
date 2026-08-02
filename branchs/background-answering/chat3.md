@@ -1,3 +1,7 @@
+## Question
+
+Look to my reverse proxy server
+```
 import express from "express";
 import { request } from "undici";
 import type QuestionAnatomy from "./types/QuestionAnatomy.js";
@@ -128,8 +132,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     let totalBytes = 0;
     let totalChunks = 0;
     let hasStartedStreaming = false;
-    let completed = false;
-    let responseEnded = false;
 
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
@@ -169,11 +171,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     body.pipe(res);
 
-    // Handle response end for cleanup
+    let completed = false;
+
     body.on("end", () => {
       logWritter.log("End body event emitted.");
-      responseEnded = true;
-      
       if (!completed) {
         completed = serverDomain.finishQuestionIfNeeded(
           completed,
@@ -209,15 +210,18 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
         }
       });
     } else {
-      // When releaseClient is true, we want to process cleanup only when response ends
-      const cleanupHandler = () => {
+      // When releaseClient is true, we still want to process the end event for cleanup
+      res.on("close", () => {
         try {
           body.destroy();
         } catch (err) {
           console.error("Failed to destroy upstream body:", err);
         }
-        
-        if (!completed && responseEnded) {
+      });
+
+      // For releaseClient=true, we still need to ensure cleanup happens on stream end
+      body.on("end", () => {
+        if (!completed) {
           completed = serverDomain.finishQuestionIfNeeded(
             completed,
             requestIntentString,
@@ -226,11 +230,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
             totalChunks
           );
         }
-      };
-
-      // Listen for both close and finish events
-      res.on("close", cleanupHandler);
-      res.on("finish", cleanupHandler);
+      });
     }
 
   } catch (err) {
@@ -245,3 +245,167 @@ app.listen(portToServe, "0.0.0.0", () => {
   AppDataSource.initialize();
   console.log(`Proxy running on :${portToServe.toString()}`);
 });
+```
+The idea here is, when providing the `releaseClient` flag, the Ollama might continue to stream ansewer, and the reverse proxy code might also continue to read and process the chunks received even after the client get closed. Then, at the end, the `finishQuestionIfNeeded` method is executed at the end of the answer streaming (even after the client is closed).
+
+How to fix it?
+
+## System proxy
+
+You are a experienced TypeScript and web developer.
+Keep the current coding style.
+
+## Answer
+
+The problem here is that when `releaseClient` is true, your proxy continues processing the upstream stream even after the client has disconnected. This can cause issues like:
+
+1. Memory leaks from keeping references to destroyed streams.
+2. Unnecessary resource usage.
+3. Potential race conditions or inconsistent state if cleanup isn't handled properly.
+
+### ✅ Key Fixes Needed
+
+We want to ensure:
+- If `releaseClient === true`, we **still** handle client disconnection gracefully.
+- The proxy **does not keep streaming** once the client is gone (unless explicitly needed).
+- Resource cleanup happens reliably even after client disconnects.
+- We avoid calling `finishQuestionIfNeeded()` multiple times.
+
+---
+
+### 🔧 Suggested Changes
+
+Here’s how you can adjust your code for better handling of this scenario:
+
+#### ✅ 1. Track whether response has been closed or aborted
+Use a flag (`responseClosed`) to prevent redundant cleanup and ensure proper lifecycle management.
+
+```ts
+let completed = false;
+let responseClosed = false;
+
+const handleCloseEvent = () => {
+  if (requestIntentString === 'option') return;
+
+  logWritter.log("Close signal received.");
+  if (upstreamAborted) return;
+  upstreamAborted = true;
+  upstreamAbortController.abort();
+
+  responseClosed = true; // Mark that response was closed
+
+  try {
+    body.destroy();
+  } catch (err) {
+    console.error("Failed to destroy upstream body:", err);
+  }
+};
+```
+
+#### ✅ 2. Guard against duplicate calls to `finishQuestionIfNeeded`
+Only call it once and only if not already completed.
+
+```ts
+body.on("end", () => {
+  logWritter.log("End body event emitted.");
+  if (!completed && !responseClosed) {
+    completed = serverDomain.finishQuestionIfNeeded(
+      completed,
+      requestIntentString,
+      questionAnatomy,
+      totalBytes,
+      totalChunks
+    );
+  }
+});
+```
+
+#### ✅ 3. Handle `close` event and avoid duplicate cleanup
+
+In both cases (`releaseClient === true` or false), make sure you do not re-run cleanup logic if already done.
+
+```ts
+// Inside close handler for releaseClient = true case:
+res.on("close", () => {
+  if (responseClosed) return; // Prevent duplicate actions
+  responseClosed = true;
+
+  try {
+    body.destroy();
+  } catch (err) {
+    console.error("Failed to destroy upstream body:", err);
+  }
+
+  if (!completed) {
+    completed = serverDomain.finishQuestionIfNeeded(
+      completed,
+      requestIntentString,
+      questionAnatomy,
+      totalBytes,
+      totalChunks
+    );
+  }
+});
+```
+
+#### ✅ 4. Ensure `body.on("end")` only runs once even when releaseClient is true
+
+You already have this logic, but double-check that you're not calling it twice:
+
+```ts
+body.on("end", () => {
+  logWritter.log("End body event emitted.");
+  if (!completed && !responseClosed) {
+    completed = serverDomain.finishQuestionIfNeeded(
+      completed,
+      requestIntentString,
+      questionAnatomy,
+      totalBytes,
+      totalChunks
+    );
+  }
+});
+```
+
+---
+
+### 📌 Summary of Key Improvements
+
+| Concern | Fix |
+|--------|-----|
+| Multiple cleanup calls | Use `responseClosed` flag to prevent redundant operations |
+| Resource leak on early disconnect | Always destroy stream in close handlers |
+| Avoid duplicate `finishQuestionIfNeeded()` | Guard with `completed && !responseClosed` |
+| Properly track stream completion | Ensure all paths lead to one final cleanup |
+
+---
+
+### 💡 Optional Enhancement: Add Timeout for Cleanup
+
+If you want more control, consider adding a timeout-based fallback to force cleanup:
+
+```ts
+const cleanupTimeout = setTimeout(() => {
+  if (!completed && !responseClosed) {
+    logWritter.log("Force cleanup due to timeout");
+    completed = serverDomain.finishQuestionIfNeeded(
+      completed,
+      requestIntentString,
+      questionAnatomy,
+      totalBytes,
+      totalChunks
+    );
+  }
+}, 10_000); // 10 seconds after stream ends
+
+body.on("end", () => {
+  clearTimeout(cleanupTimeout);
+  ...
+});
+```
+
+This helps with edge cases where neither `close` nor `end` fires properly.
+
+---
+
+Let me know if you'd like a **refactored version of the full function block** incorporating these fixes.
