@@ -30,6 +30,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const timeout = 1000 * 60 * 60 * 3;
   const serverDomain = new ServerDomain(logWritter, metricLifeCycle);
 
+  // Check if we should release client immediately
+  const shouldReleaseClient = req.body && typeof req.body === 'object' && 
+    (req.body as any).release_client === true;
+
   const headers = { ...req.headers };
 
   delete headers.host;
@@ -58,7 +62,9 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     logWritter.log(questionAnatomy.question);
 
     uuid = uuidv4();
+    
     logWritter.log(`Uuid: ${uuid}`);
+
     if (questionAnatomy.systemPrompt) {
       logWritter.log("System prompt:");
       logWritter.log("==========");
@@ -70,10 +76,12 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
+
   }
 
   try {
     const upstreamAbortController = new AbortController();
+
     let upstreamAborted = false;
 
     req.on("aborted", () => {
@@ -99,10 +107,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       upstreamAbortController.abort();
     });
 
-    res.on("error", () => {
-      console.log("Error from response.");
-    });
-
     const { body, statusCode, headers: upstreamHeaders } = await request(targetUrl, {
       method: req.method,
       headers,
@@ -113,47 +117,154 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       bodyTimeout: timeout,
     });
 
-    res.status(statusCode);
 
-    QuestionProcessingHelper.assemblyHeader(res, upstreamHeaders);
+    // Handle the release_client logic
+    if (shouldReleaseClient) {
+      // Immediately send status code and headers to client
+      res.status(statusCode);
+      QuestionProcessingHelper.assemblyHeader(res, upstreamHeaders);
+      
+      // Start processing response in background without waiting for client
+      processResponseInBackground(
+        body,
+        res,
+        requestIntentString,
+        questionAnatomy,
+        uuid,
+        logWritter,
+        metricLifeCycle,
+        serverDomain
+      );
+      
+      // Immediately close the response to client (but keep processing)
+      res.end();
+    } else {
+      // Normal streaming behavior
+      res.status(statusCode);
+      QuestionProcessingHelper.assemblyHeader(res, upstreamHeaders);
 
-    let totalBytes = 0;
-    let totalChunks = 0;
-    let hasStartedStreaming = false;
+      let totalBytes = 0;
+      let totalChunks = 0;
+      let hasStartedStreaming = false;
 
+      body.on("data", (chunk: Buffer) => {
+        totalBytes += chunk.length;
+        hasStartedStreaming = true;
+        if (requestIntentString === "question") {
+          const chunksResponse = metricLifeCycle.digestChunk(chunk);
+          if ("" !== chunksResponse) {
+            totalChunks++;
+            logWritter.log(`-> chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
+            logWritter.log(`--->${chunksResponse}<---`);
+          }
+        }
+      });
+
+      body.on("error", (err) => {
+        const codeString = (err as NodeJS.ErrnoException).code;
+        const errorName = (err as NodeJS.ErrnoException).name;
+        const abortErrorCodeString = codeString === 'UND_ERR_ABORTED';
+        const abortErrorName = errorName === 'AbortError';
+        if (abortErrorCodeString || abortErrorName) {
+          logWritter.log("Aborted by user or the client has been closed.");
+        } else {
+          logWritter.log("OOPS! An error!");
+          console.error("Stream error:", err);
+        }
+        res.destroy(err);
+      });
+
+      body.pipe(res);
+
+      let completed = false;
+
+      body.on("end", () => {
+        logWritter.log("End body event emitted.");
+        if (!completed) {
+          completed = serverDomain.finishQuestionIfNeeded(
+            completed, 
+            requestIntentString, 
+            questionAnatomy,
+            totalBytes,
+            totalChunks
+          );
+        }
+      });
+
+      res.on("close", () => {
+        if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
+          logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
+        }
+
+        try {
+          body.destroy();
+        } catch (err) {
+          console.error("Failed to destroy upstream body:", err);
+        }
+
+        if (!completed) {
+          completed = serverDomain.finishQuestionIfNeeded(
+            completed, 
+            requestIntentString, 
+            questionAnatomy,
+            totalBytes,
+            totalChunks
+          );
+        }
+      });
+    }
+  } catch (err) {
+    console.error("Proxy error:", err);
+    res.status(502).json({ error: "Bad Gateway" });
+  }
+});
+
+// Background processing function
+async function processResponseInBackground(
+  body: any,
+  clientRes: express.Response,
+  requestIntentString: string,
+  questionAnatomy: QuestionAnatomy | null,
+  uuid: string,
+  logWritter: LogImplementation,
+  metricLifeCycle: MetricLifeCycle,
+  serverDomain: ServerDomain
+) {
+  // This function handles background processing without waiting for client
+  let totalBytes = 0;
+  let totalChunks = 0;
+  let completed = false;
+  const formatterMilliseconds = QuestionProcessingHelper.getFormatterMilliseconds();
+
+  try {
+    // Create a new response object to handle the background processing
+    const backgroundLogWritter = new LogImplementation();
+    
     body.on("data", (chunk: Buffer) => {
       totalBytes += chunk.length;
-      hasStartedStreaming = true;
-      if (requestIntentString === "question") {
+      
+      if (requestIntentString === "question" && questionAnatomy) {
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
         if ("" !== chunksResponse) {
           totalChunks++;
-          logWritter.log(`-> chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
-          logWritter.log(`--->${chunksResponse}<---`);
+          backgroundLogWritter.log(`-> background chunk: ${uuid}, ${formatterMilliseconds.format(new Date())} <-`);
+          backgroundLogWritter.log(`--->${chunksResponse}<---`);
         }
       }
     });
 
     body.on("error", (err) => {
       const codeString = (err as NodeJS.ErrnoException).code;
-      const errorName = (err as NodeJS.ErrnoException).name;
-      const abortErrorCodeString = codeString === 'UND_ERR_ABORTED';
-      const abortErrorName = errorName === 'AbortError';
-      if (abortErrorCodeString || abortErrorName) {
-        logWritter.log("Aborted by user or the client has been closed.");
+      if (codeString === 'UND_ERR_ABORTED') {
+        backgroundLogWritter.log("Background processing aborted.");
       } else {
-        logWritter.log("OOPS! An error!");
-        console.error("Stream error:", err);
+        backgroundLogWritter.log("Background stream error:");
+        console.error("Background stream error:", err);
       }
-      res.destroy(err);
     });
-
-    body.pipe(res);
-
-    let completed = false;
 
     body.on("end", () => {
-      logWritter.log("End body event emitted.");
+      backgroundLogWritter.log("Background stream ended.");
       if (!completed) {
         completed = serverDomain.finishQuestionIfNeeded(
           completed, 
@@ -164,34 +275,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
         );
       }
     });
-
-    res.on("close", () => {
-      if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
-        logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
-      }
-
-      try {
-        body.destroy();
-      } catch (err) {
-        console.error("Failed to destroy upstream body:", err);
-      }
-
-      if (!completed) {
-        completed = serverDomain.finishQuestionIfNeeded(
-          completed, 
-          requestIntentString, 
-          questionAnatomy,
-          totalBytes,
-          totalChunks
-        );
-      }
-    });
-
   } catch (err) {
-    console.error("Proxy error:", err);
-    res.status(502).json({ error: "Bad Gateway" });
+    console.error("Background processing error:", err);
   }
-});
+}
 
 const portToServe: number = 11001;
 
