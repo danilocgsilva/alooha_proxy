@@ -15,6 +15,19 @@ const app = express();
 
 app.use(express.raw({ type: "*/*" }));
 
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, X-Release-Client");
+    res.header("Access-Control-Max-Age", "86400"); // 24 horas
+    
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+
 const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11434"}`;
 
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
@@ -39,10 +52,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
 
   if (requestIntentString === "alooha_stats") {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept");
-    
     let historyStats = new HistoryStats();
     let statsData = await historyStats.getModelCounts();
     return res.status(200).json({message: statsData});
