@@ -1,9 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import { format, createLogger, transports } from 'winston';
 import { v4 as uuidv4 } from 'uuid';
 import { LogEntry, LogLevel } from './types/LogEntry';
 import { LoggerConfig } from './types/LoggerConfig';
+import  DailyRotateFile from 'winston-daily-rotate-file';
 
 export class LogProvider {
   private logger: any;
@@ -48,12 +47,14 @@ export class LogProvider {
       }));
     }
 
-    // File transport
+    // File transport with rotation
     if (this.config.file) {
-      transportsArray.push(new transports.File({
+      transportsArray.push(new DailyRotateFile({
         filename: this.config.file.filename,
-        maxsize: this.config.file.maxSize || 1024 * 1024 * 50,
-        maxFiles: this.config.file.maxFiles || 5,
+        datePattern: 'YYYY-MM-DD',
+        zippedArchive: true,
+        maxSize: this.config.file.maxSize || '50m',
+        maxFiles: this.config.file.maxFiles || '7d', // or 5 files
         format: this.getFormat(),
       }));
     }
@@ -157,6 +158,6 @@ export const logger = new LogProvider({
   file: {
     filename: 'logs/app.log',
     maxSize: 1024 * 1024 * 50,
-    maxFiles: 5,
+    maxFiles: 500,
   },
 });
