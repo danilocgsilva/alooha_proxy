@@ -33,7 +33,7 @@ const OLLAMA_URL = `http://host.docker.internal:${process.env.OLLAMA_PORT ?? "11
 app.all(/.*/, async (req: express.Request, res: express.Response) => {
   const logWritter = new LogImplementation();
   const targetUrl = `${OLLAMA_URL}${req.originalUrl}`;
-  const metricLifeCycle = new MetricLifeCycle();
+  const metricLifeCycle = new MetricLifeCycle(logWritter);
   let questionAnatomy: QuestionAnatomy | null = null;
   const requestIntent: RequestIntent = new RequestIntent(req);
   const requestIntentString = requestIntent.getIntent();
@@ -42,6 +42,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   let uuid: string;
   const timeout = 1000 * 60 * 60 * 3;
   const serverDomain = new ServerDomain(logWritter, metricLifeCycle);
+  const metricWorks = new MetricWorks(logWritter);
 
   const headers = { ...req.headers };
 
@@ -58,7 +59,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 
   if (requestIntentString === "question") {
-    questionAnatomy = MetricWorks.getAnatomy(req.body.toString(), req);
+    questionAnatomy = metricWorks.getAnatomy(req.body.toString(), req);
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
 

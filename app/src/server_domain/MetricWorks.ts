@@ -1,8 +1,12 @@
 import type QuestionAnatomy from "../types/QuestionAnatomy";
 import express from "express";
+import LogImplementation from "../server_domain/LogImplementation";
 
 class MetricWorks {
-    static getAnatomy(requestBody: string, request: express.Request): QuestionAnatomy {
+    constructor(private logWritter: LogImplementation) {
+    }
+
+    getAnatomy(requestBody: string, request: express.Request): QuestionAnatomy {
         if (request.originalUrl === "/api/chat") {
             const requestBodyParsed = JSON.parse(requestBody);
             const messagesCurrentQuestion = requestBodyParsed.messages;
@@ -51,12 +55,13 @@ class MetricWorks {
         throw new Error("The original url is not known.")
     }
 
-    static getDataChunk(responseChunk: Buffer): string {
+    getDataChunk(responseChunk: Buffer): string {
         const chunkString = responseChunk.toString();
         const chunkParsed = JSON.parse(chunkString);
         if (chunkParsed.message) {
             return chunkParsed.message.content;
         }
+        this.logWritter.log("Oops! Could not parse a chunk!");
         return "";
     }
 }

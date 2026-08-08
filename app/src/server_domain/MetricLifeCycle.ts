@@ -2,6 +2,7 @@ import express from "express";
 import AnswerPerformance from "../types/AnswerPerformance";
 import MetricWorks from "./MetricWorks.js";
 import QuestionAnatomy from "../types/QuestionAnatomy";
+import LogImplementation from "../server_domain/LogImplementation";
 
 class MetricLifeCycle {
     private beginTimeMilliseconds!: number;
@@ -15,6 +16,12 @@ class MetricLifeCycle {
     private isBegan: boolean = false;
 
     private chunksAnswer: string[] = [];
+
+    private metricWorks: MetricWorks;
+
+    constructor(private logWritter: LogImplementation) {
+        this.metricWorks = new MetricWorks(logWritter);
+    }
 
     public setWhenBegan() {
         const now = new Date();
@@ -58,7 +65,7 @@ class MetricLifeCycle {
     }
 
     public digestChunk(chunk: Buffer): string {
-        const chunkResponse = MetricWorks.getDataChunk(chunk);
+        const chunkResponse = this.metricWorks.getDataChunk(chunk);
         if ("" === chunkResponse) {
             return "";
         }

@@ -1,6 +1,7 @@
 import MetricWorks from "../server_domain/MetricWorks";
 import type express from "express";
 import type QuestionAnatomy from "../types/QuestionAnatomy";
+import LogImplementation from "../server_domain/LogImplementation";
 
 const mockRequest = (url: string, body: string) =>
     ({
@@ -10,6 +11,7 @@ const mockRequest = (url: string, body: string) =>
     } as unknown as express.Request);
 
 describe("MetricWorks.getAnatomy", () => {
+    const metricWorks = new MetricWorks(new LogImplementation());
     it("returns anatomy with question and requestBody using the chat endpoint", () => {
         const requestBodyContentString = {
             "model": "gemma3:4b",
@@ -25,7 +27,7 @@ describe("MetricWorks.getAnatomy", () => {
         const body = JSON.stringify(requestBodyContentString);
         const req = mockRequest("/api/chat", body);
 
-        const result: QuestionAnatomy = MetricWorks.getAnatomy(body, req);
+        const result: QuestionAnatomy = metricWorks.getAnatomy(body, req);
 
         expect(result).toHaveProperty('requestBody');
         expect(result).toHaveProperty('url');
@@ -37,6 +39,7 @@ describe("MetricWorks.getAnatomy", () => {
     });
 
     it("returns anatomy with question and requestBody using the generate endpoint", () => {
+        const metricWorks = new MetricWorks(new LogImplementation());
         const requestBodyContent = {
             "question": "What is the Malasia capital?",
             "model": "gemma3:4b",
@@ -46,7 +49,7 @@ describe("MetricWorks.getAnatomy", () => {
         const body = JSON.stringify(requestBodyContent);
         const req = mockRequest("/api/generate", body);
 
-        const result = MetricWorks.getAnatomy(body, req);
+        const result = metricWorks.getAnatomy(body, req);
 
         expect(result).toHaveProperty('requestBody');
         expect(result).toHaveProperty('url');
@@ -58,20 +61,23 @@ describe("MetricWorks.getAnatomy", () => {
     });
 
     it("returns message content from a valid chunk buffer", () => {
+        const metricWorks = new MetricWorks(new LogImplementation());
         const testRecords = { message: { content: "hello" } };
         const chunk = Buffer.from(JSON.stringify(testRecords));
-        expect(MetricWorks.getDataChunk(chunk)).toBe("hello");
+        expect(metricWorks.getDataChunk(chunk)).toBe("hello");
     });
 
     it("throws on invalid JSON", () => {
+        const metricWorks = new MetricWorks(new LogImplementation());
         const chunk = Buffer.from("not json");
-        expect(() => MetricWorks.getDataChunk(chunk)).toThrow();
+        expect(() => metricWorks.getDataChunk(chunk)).toThrow();
     });
 
     it("Return empty string when missing data", () => {
+        const metricWorks = new MetricWorks(new LogImplementation());
         const testRecords = { other: "data" };
         const chunk = Buffer.from(JSON.stringify(testRecords));
-        const emptyString = MetricWorks.getDataChunk(chunk);
+        const emptyString = metricWorks.getDataChunk(chunk);
         expect(emptyString).toBe("");
     });
 });
