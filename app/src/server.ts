@@ -135,6 +135,19 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       totalBytes += chunk.length;
       hasStartedStreaming = true;
       if (requestIntentString === "question") {
+        // const chunkString = chunk.toString();
+        // const chunkString = JSON.stringify(chunk, null, 2);
+        // const chunkString = JSON.stringify(chunk.toString(), null, 2);
+        // const chunkString = chunk.toString("utf8");
+
+        const chunkString = chunk.toString("utf8");
+        const parsedJson = JSON.parse(chunkString);
+        const prettyJson = JSON.stringify(parsedJson, null, 2);
+
+        logWritter.log("--------- raw chunk ---------");
+        logWritter.log(prettyJson);
+        logWritter.log("--------- end of raw chunk ---------");
+        
         const chunksResponse = metricLifeCycle.digestChunk(chunk);
         if ("" !== chunksResponse) {
           totalChunks++;
