@@ -25,12 +25,13 @@
   "devDependencies": {
     "@babel/core": "^8.0.1",
     "@babel/preset-env": "^8.0.2",
+    "@swc/core": "^1.15.47",
+    "@swc/jest": "^0.2.39",
     "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.6.0",
     "babel-jest": "^30.4.1",
     "jest": "^30.3.0",
-    "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2"
   }
 }
