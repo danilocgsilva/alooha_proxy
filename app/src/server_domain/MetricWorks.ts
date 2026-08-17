@@ -11,9 +11,6 @@ class MetricWorks {
             const requestBodyParsed = JSON.parse(requestBody);
             const messagesCurrentQuestion = requestBodyParsed.messages;
 
-            // let dataPrompt: Record<string, string>;
-            // let dataSystemPrompt: Record<string, string> = {};
-
             let dataPrompt = "";
             let dataSystemPrompt = "";
 
@@ -27,6 +24,8 @@ class MetricWorks {
             const systemPrompt: string = dataSystemPrompt;
             
             const url: string = request.url;
+            const chatId = requestBodyParsed.chatId;
+
             if (systemPrompt) {
                 return {
                     requestBody,
@@ -34,14 +33,15 @@ class MetricWorks {
                     url,
                     model: requestBodyParsed.model,
                     systemPrompt,
-                    chatId: requestBodyParsed.chatId,
+                    chatId
                 }
             } else {
                 return {
                     requestBody,
                     url,
                     question,
-                    model: requestBodyParsed.model
+                    model: requestBodyParsed.model,
+                    chatId
                 }
             }
         }
