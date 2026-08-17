@@ -11,26 +11,30 @@ class MetricWorks {
             const requestBodyParsed = JSON.parse(requestBody);
             const messagesCurrentQuestion = requestBodyParsed.messages;
 
-            let dataPrompt: Record<string, string>;
-            let dataSystemPrompt: Record<string, string> = {};
-            if (messagesCurrentQuestion.length === 2) {
-                dataPrompt = messagesCurrentQuestion[1];
-                dataSystemPrompt = messagesCurrentQuestion[0];
-            } else {
-                dataPrompt = messagesCurrentQuestion[0];
-            }
+            // let dataPrompt: Record<string, string>;
+            // let dataSystemPrompt: Record<string, string> = {};
 
-            const question: string = dataPrompt.content;
-            const systemPrompt: string | undefined = dataSystemPrompt.content;
+            let dataPrompt = "";
+            let dataSystemPrompt = "";
+
+            const firstMessage = messagesCurrentQuestion[0];
+            if (firstMessage.role === "system") {
+                dataSystemPrompt = firstMessage.content;
+            }
+            dataPrompt = messagesCurrentQuestion.slice(-1)[0].content;
+
+            const question: string = dataPrompt;
+            const systemPrompt: string = dataSystemPrompt;
             
             const url: string = request.url;
             if (systemPrompt) {
                 return {
                     requestBody,
-                    url,
                     question,
+                    url,
+                    model: requestBodyParsed.model,
                     systemPrompt,
-                    model: requestBodyParsed.model
+                    chatId: requestBodyParsed.chatId,
                 }
             } else {
                 return {

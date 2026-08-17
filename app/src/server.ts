@@ -58,8 +58,17 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     return res.status(200).json({message: statsData});
   }
 
+  // let parsedRequest: any;
   if (requestIntentString === "question") {
-    questionAnatomy = metricWorks.getAnatomy(req.body.toString(), req);
+    const requestString = req.body.toString();
+    const parsedRequest = JSON.parse(req.body);
+
+    logWritter.log(`Request send for a question:`);
+    logWritter.log("=============================");
+    const prettyRequestAnatomy = JSON.stringify(parsedRequest, null, 2);
+    logWritter.log(prettyRequestAnatomy);
+
+    questionAnatomy = metricWorks.getAnatomy(requestString, req);
     metricLifeCycle.setWhenBegan();
     metricLifeCycle.setUserIp(req);
 

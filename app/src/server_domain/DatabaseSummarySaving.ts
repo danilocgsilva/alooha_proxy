@@ -59,6 +59,13 @@ class DatabaseSummarySaving {
             });
         }
 
+        if (this.questionAnatomy.chatId) {
+            questionService.addMeta({
+                name: "chatId",
+                value: this.questionAnatomy.chatId
+            });
+        }
+
         questionService.save();
     }
 
