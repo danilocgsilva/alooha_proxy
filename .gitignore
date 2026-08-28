@@ -6,3 +6,5 @@ app/dist/**/*
 alooha_proxy_db_data
 backups/**/*
 app/logs/app.log
+.aider*
+app/logs/*

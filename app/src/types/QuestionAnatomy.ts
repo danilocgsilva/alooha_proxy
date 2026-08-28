@@ -4,7 +4,8 @@ type QuestionAnatomy = {
     url: string,
     model: string,
     systemPrompt?: string,
-    chatId?: string
+    chatId?: string,
+    options?: { [key: string]: unknown }
 }
 
 export default QuestionAnatomy;

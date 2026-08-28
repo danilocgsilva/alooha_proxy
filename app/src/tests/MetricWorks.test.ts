@@ -21,7 +21,11 @@ describe("MetricWorks.getAnatomy", () => {
                     "content": "What is the Malasia capital?",
                 }
             ],
-            "stream": true
+            "stream": true,
+            "options": {
+                "temperature": 0.7,
+                "top_k": 40
+            }
         };
 
         const body = JSON.stringify(requestBodyContentString);
@@ -36,6 +40,7 @@ describe("MetricWorks.getAnatomy", () => {
         expect(result.url).toBe("/api/chat");
         expect(result.question).toBe("What is the Malasia capital?");
         expect(result.model).toBe("gemma3:4b");
+        expect(result.options).toEqual({ temperature: 0.7, top_k: 40 });
     });
 
     it("returns anatomy with question and requestBody using the generate endpoint", () => {

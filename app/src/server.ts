@@ -58,7 +58,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     return res.status(200).json({message: statsData});
   }
 
-  // let parsedRequest: any;
   if (requestIntentString === "question") {
     const requestString = req.body.toString();
     const parsedRequest = JSON.parse(req.body);

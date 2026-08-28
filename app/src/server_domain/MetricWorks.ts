@@ -25,6 +25,7 @@ class MetricWorks {
             
             const url: string = request.url;
             const chatId = requestBodyParsed.chatId;
+            const options = requestBodyParsed.options;
 
             if (systemPrompt) {
                 return {
@@ -33,7 +34,8 @@ class MetricWorks {
                     url,
                     model: requestBodyParsed.model,
                     systemPrompt,
-                    chatId
+                    chatId,
+                    options
                 }
             } else {
                 return {
@@ -41,7 +43,8 @@ class MetricWorks {
                     url,
                     question,
                     model: requestBodyParsed.model,
-                    chatId
+                    chatId,
+                    options
                 }
             }
         }

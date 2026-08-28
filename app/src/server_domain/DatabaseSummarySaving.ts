@@ -66,6 +66,13 @@ class DatabaseSummarySaving {
             });
         }
 
+        if (this.questionAnatomy.options) {
+            questionService.addMeta({
+                name: "options",
+                value: JSON.stringify(this.questionAnatomy.options)
+            });
+        }
+
         questionService.save();
     }
 
