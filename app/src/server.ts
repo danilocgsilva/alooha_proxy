@@ -62,6 +62,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 
   if (requestIntentString === "listModels") {
+    // const upstreamAbortController = new AbortController();
     const { body } = await request(targetUrl, {
       method: req.method,
       headers,
@@ -79,11 +80,9 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     const parsedResponse = JSON.parse(responseBody) as ModelListResponse;
 
-    // Now you can safely access:
-    console.log(parsedResponse.models[0].name);
-    console.log(parsedResponse.models[0].details.family);
+    parsedResponse.models.sort((a, b) => a.name.localeCompare(b.name));
 
-    res.status(200).json(parsedResponse);
+    return res.status(200).json(parsedResponse);
   }
 
   if (requestIntentString === "question") {
@@ -119,6 +118,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 
   try {
+    // const upstreamAbortController = new AbortController();
     let upstreamAborted = false;
 
     req.on("aborted", () => {
