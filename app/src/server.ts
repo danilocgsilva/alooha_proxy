@@ -10,6 +10,7 @@ import QuestionProcessingHelper from "./server_domain/QuestionProcessingHelper.j
 import { v4 as uuidv4 } from 'uuid';
 import HistoryStats from "./database/services/HistoryStats.js";
 import ServerDomain from "./domain/ServerDomain.js";
+import { ModelListResponse } from "./types/ModelListResponse.js";
 
 const app = express();
 
@@ -52,10 +53,37 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
   logWritter.log(`Intent: ${requestIntentString || "unknown"}`);
 
+  const upstreamAbortController = new AbortController();
+
   if (requestIntentString === "alooha_stats") {
     let historyStats = new HistoryStats();
     let statsData = await historyStats.getModelCounts();
     return res.status(200).json({message: statsData});
+  }
+
+  if (requestIntentString === "listModels") {
+    const { body } = await request(targetUrl, {
+      method: req.method,
+      headers,
+      body: req.body && req.body.length ? req.body : undefined,
+      signal: upstreamAbortController.signal,
+
+      headersTimeout: timeout,
+      bodyTimeout: timeout,
+    });
+
+    let responseBody = '';
+    for await (const chunk of body) {
+      responseBody += chunk;
+    }
+
+    const parsedResponse = JSON.parse(responseBody) as ModelListResponse;
+
+    // Now you can safely access:
+    console.log(parsedResponse.models[0].name);
+    console.log(parsedResponse.models[0].details.family);
+
+    res.status(200).json(parsedResponse);
   }
 
   if (requestIntentString === "question") {
@@ -91,7 +119,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 
   try {
-    const upstreamAbortController = new AbortController();
     let upstreamAborted = false;
 
     req.on("aborted", () => {
