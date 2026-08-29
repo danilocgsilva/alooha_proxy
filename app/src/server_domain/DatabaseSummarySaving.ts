@@ -1,7 +1,19 @@
+import fs from "fs";
+import path from "path";
 import QuestionService from "../database/services/QuestionService.js";
 import AnswerPerformance from "../types/AnswerPerformance.js";
 import { DataSource } from "typeorm";
 import QuestionAnatomy from "../types/QuestionAnatomy.js";
+
+export function getProxyVersion(): string {
+    const packageJsonPath = path.resolve(__dirname, "../../package.json");
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
+        name?: string;
+        version?: string;
+    };
+
+    return `${packageJson.name ?? "proxy"}_${packageJson.version ?? "0.0.0"}`;
+}
 
 class DatabaseSummarySaving {
     constructor(
@@ -49,7 +61,7 @@ class DatabaseSummarySaving {
 
         questionService.addMeta({
             name: "proxy_version",
-            value: "alooha_proxy_1.6.0"
+            value: getProxyVersion()
         });
 
         if (this.questionAnatomy.systemPrompt) {
