@@ -14,6 +14,12 @@ You access the endpoint served by this project exactly you do in Ollama. But thi
 
 The default address to access this server is http://localhost:11001, then make resquests with the same anatomy that you usually do when acessing Ollama.
 
+## Alternative using Devpod - a nice one!
+
+This applition is first tested with Devpod and VS Codium!
+
+Devpod can offer a more convenient way to organize your containers. Also works nice managing dev container. And the current project have its own devcontainer application.
+
 ## What do you have here?
 
 Look to the `docker-compose.yml` file to see all services from this project. You have the following:
