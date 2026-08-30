@@ -3,22 +3,19 @@ import DatabaseSummarySaving from "../../../server_domain/DatabaseSummarySaving"
 import QuestionService from "../../../database/services/QuestionService";
 import AnswerPerformance from "../../../types/AnswerPerformance";
 import QuestionAnatomy from "../../../types/QuestionAnatomy";
-import { AppDataSource } from "../../../database/dataSource";
-// import { TestDataSource } from "../tests/database/dataSource";
+import TestDataSource from "../../database/TestDataSource";
 
 describe("DatabaseSummarySaving", () => {
     let dataSource: DataSource;
-    let testDataSource: DataSource;
+    // let testDataSource: DataSource;
 
     beforeAll(async () => {
-        // Use the test database connection
-        testDataSource = await TestDataSource.initialize();
-        dataSource = testDataSource;
+        dataSource = await TestDataSource.initialize();
     });
 
     afterAll(async () => {
-        if (testDataSource && testDataSource.isInitialized) {
-            await testDataSource.destroy();
+        if (dataSource && dataSource.isInitialized) {
+            await dataSource.destroy();
         }
     });
 
@@ -49,10 +46,16 @@ describe("DatabaseSummarySaving", () => {
             question: "What is the capital of France?",
             answer: "Paris",
             beginUnixEpochTimestamp: 1678886400000, // 2023-03-15 00:00:00 UTC
+            beginUnixEpochTimestampChunks: 1678886400000,
             endUnixEpochTimestamp: 1678886460000,  // 2023-03-15 00:01:00 UTC
+            bytesSize: 5,
+            totalChunks: 1
         };
 
         const questionAnatomy: QuestionAnatomy = {
+            requestBody: "{}",
+            question: "What is the capital of France?",
+            url: "/api/chat",
             model: "llama3",
             systemPrompt: "You are a helpful assistant",
             chatId: "chat-123",
@@ -119,10 +122,16 @@ describe("DatabaseSummarySaving", () => {
             question: "What is the capital of France?",
             answer: "Paris",
             beginUnixEpochTimestamp: 1678886400000,
+            beginUnixEpochTimestampChunks: 1678886400000,
             endUnixEpochTimestamp: 1678886460000,
+            bytesSize: 5,
+            totalChunks: 1
         };
 
         const questionAnatomy: QuestionAnatomy = {
+            requestBody: "{}",
+            question: "What is the capital of France?",
+            url: "/api/chat",
             model: "llama3"
         };
 
