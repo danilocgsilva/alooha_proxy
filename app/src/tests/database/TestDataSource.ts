@@ -6,7 +6,7 @@ import { InitSchema1700000000000 } from "../../database/migrations/1700000000000
 import { MetaNameSelfRelation1700000000001 } from "../../database/migrations/1700000000001-MetaNameSelfRelation";
 
 export default class TestDataSource {
-    public static initialize(): DataSource {
+    public static async initialize(): Promise<DataSource> {
         return new DataSource({
             type: "postgres",
             host: process.env.DB_HOST ?? "localhost",
@@ -17,6 +17,6 @@ export default class TestDataSource {
             entities: [Content, MetaName, LongTextMetaValue],
             migrations: [InitSchema1700000000000, MetaNameSelfRelation1700000000001],
             migrationsRun: true,
-        });
+        }).initialize();
     }
 }

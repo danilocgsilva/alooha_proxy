@@ -46,6 +46,21 @@
                 "!**/node_modules/**"
             ],
             "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug current test file",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": ["${relativeFile}", "--runInBand", "--no-coverage"],
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "sourceMaps": true
         }
     ]
 }

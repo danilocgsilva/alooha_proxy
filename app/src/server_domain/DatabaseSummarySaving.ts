@@ -22,7 +22,7 @@ class DatabaseSummarySaving {
         private questionAnatomy: QuestionAnatomy
     ) { }
 
-    public save() {
+    public async save() {
         const questionService = new QuestionService(this.appDataSource);
 
         questionService.setQuestion(this.answerPerformance.question);
@@ -91,7 +91,7 @@ class DatabaseSummarySaving {
             });
         }
 
-        questionService.save();
+        await questionService.save();
     }
 
     private calculatesEndBeginTimeDifferenceMilliseconds(): number {
