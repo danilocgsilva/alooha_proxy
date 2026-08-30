@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from "typeorm";
-import { MetaName } from "./MetaName";
+import type { MetaName } from "./MetaName";
 
 @Entity("long_text_meta_value")
 export class LongTextMetaValue {
@@ -12,7 +12,7 @@ export class LongTextMetaValue {
   @Column()
   meta_names_id!: number;
 
-  @OneToOne(() => MetaName)
+  @OneToOne("MetaName", "longTextMetaValue")
   @JoinColumn({ name: "meta_names_id" })
   metaName!: MetaName;
 }

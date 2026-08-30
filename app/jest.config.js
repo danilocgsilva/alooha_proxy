@@ -1,6 +1,11 @@
 module.exports = {
   transform: {
-    '^.+\\.(ts|tsx)$': ['@swc/jest'],
+    '^.+\\.(ts|tsx)$': ['@swc/jest', {
+      jsc: {
+        parser: { syntax: 'typescript', decorators: true },
+        transform: { decoratorMetadata: true },
+      },
+    }],
     '^.+\\.(js|jsx)$': 'babel-jest',
   },
   extensionsToTreatAsEsm: ['.ts'],
