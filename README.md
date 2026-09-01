@@ -1,6 +1,6 @@
 # Alooha server
 
-A proxy to be in front of Ollama server, but capturing answer metrics and performance.
+A reverse proxy to be in front of Ollama server, but capturing answer metrics and performance.
 
 You access the endpoint served by this project exactly you do in Ollama. But this one intercepts all requests and takes oportunity to log statistics and response performance.
 
@@ -67,3 +67,11 @@ Environment="OLLAMA_HOST=0.0.0.0"
 Environment="OLLAMA_ORIGINS=*"
 Environment="OLLAMA_NUM_PARALLEL=2
 ```
+
+## Technical details
+
+This application is made with TypeScript. It's main entry point is `app/src/server.ts`.
+
+### Recording data
+
+The reverse proxy processa data both from client and also from upstream data.
