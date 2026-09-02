@@ -97,6 +97,7 @@ describe("DatabaseSummarySaving", () => {
         expect(metaNameMap.get("system prompt")).toBe("You are a helpful assistant");
         expect(metaNameMap.get("chatId")).toBe("chat-123");
         expect(metaNameMap.get("options")).toBe('{"temperature":0.7}');
+        expect(metaNameMap.get("proxy_version")).toBeDefined();
         
         const timeDiffSeconds = parseInt(metaNameMap.get("time_difference_seconds")!);
         expect(timeDiffSeconds).toBe(60); // 60 seconds difference
@@ -158,6 +159,7 @@ describe("DatabaseSummarySaving", () => {
         expect(metaNameMap.get("model")).toBe("llama3");
         expect(metaNameMap.get("system prompt")).toBe("You are a helpful assistant");
         expect(metaNameMap.get("chatId")).toBe("chat-123");
+        expect(metaNameMap.get("proxy_version")).toBeDefined();
         
         const timeDiffSeconds = parseInt(metaNameMap.get("time_difference_seconds")!);
         expect(timeDiffSeconds).toBe(60); // 60 seconds difference
