@@ -79,10 +79,7 @@ class DatabaseSummarySaving {
         }
 
         if (this.questionAnatomy.options && Object.keys(this.questionAnatomy.options).length > 0) {
-            questionService.addMeta({
-                name: "options",
-                value: JSON.stringify(this.questionAnatomy.options)
-            });
+            questionService.setQuestionOptions(this.questionAnatomy.options);
         }
 
         await questionService.save();

@@ -6,6 +6,7 @@ import QuestionAnatomy from "../../../types/QuestionAnatomy";
 import TestDataSource from "../../database/TestDataSource";
 import { Content } from "../../../database/entities/Content";
 import { MetaName } from "../../../database/entities/MetaName";
+import { QuestionOptions } from "../../../database/entities/QuestionOptions";
 
 describe("DatabaseSummarySaving", () => {
     let dataSource: DataSource;
@@ -28,6 +29,7 @@ describe("DatabaseSummarySaving", () => {
         try {
             await queryRunner.query("DELETE FROM long_text_meta_value");
             await queryRunner.query("DELETE FROM meta_names");
+            await queryRunner.query("DELETE FROM question_options");
             await queryRunner.query("DELETE FROM contents");
             
             await queryRunner.commitTransaction();
@@ -84,7 +86,7 @@ describe("DatabaseSummarySaving", () => {
             relations: ["longTextMetaValue"] 
         });
         
-        expect(metaNames).toHaveLength(12);
+        expect(metaNames).toHaveLength(11);
         
         const metaNameMap = new Map(metaNames.map(meta => [meta.meta_name, meta.longTextMetaValue.string_meta_value]));
         
@@ -96,8 +98,15 @@ describe("DatabaseSummarySaving", () => {
         expect(metaNameMap.get("model")).toBe("llama3");
         expect(metaNameMap.get("system prompt")).toBe("You are a helpful assistant");
         expect(metaNameMap.get("chatId")).toBe("chat-123");
-        expect(metaNameMap.get("options")).toBe('{"temperature":0.7}');
+        expect(metaNameMap.get("options")).toBeUndefined();
         expect(metaNameMap.get("proxy_version")).toBeDefined();
+        
+        const questionOptionsRepository = dataSource.getRepository(QuestionOptions);
+        const questionOptions = await questionOptionsRepository.find({ relations: ["content"] });
+
+        expect(questionOptions).toHaveLength(1);
+        expect(questionOptions[0].options).toEqual({ temperature: 0.7 });
+        expect(questionOptions[0].content).toBeDefined();
         
         const timeDiffSeconds = parseInt(metaNameMap.get("time_difference_seconds")!);
         expect(timeDiffSeconds).toBe(60); // 60 seconds difference
