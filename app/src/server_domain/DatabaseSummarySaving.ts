@@ -64,6 +64,11 @@ class DatabaseSummarySaving {
             value: getProxyVersion()
         });
 
+        questionService.addMeta({
+            name: "full_question_payload",
+            value: this.questionAnatomy.requestBody
+        });
+
         if (this.questionAnatomy.systemPrompt) {
             questionService.addMeta({
                 name: "system prompt",
