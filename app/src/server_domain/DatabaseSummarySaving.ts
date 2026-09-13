@@ -54,6 +54,44 @@ class DatabaseSummarySaving {
             )
         });
 
+        this.addCommonMeta(questionService);
+
+        await questionService.save();
+    }
+
+    public async partialSave(interruptedAtMs: number) {
+        const questionService = new QuestionService(this.appDataSource);
+
+        questionService.setQuestion(this.answerPerformance.question);
+
+        questionService.addMeta({
+            name: "begin",
+            value: this.answerPerformance.beginUnixEpochTimestamp.toString()
+        });
+
+        const elapsedMs = interruptedAtMs - this.answerPerformance.beginUnixEpochTimestamp;
+
+        questionService.addMeta({
+            name: "time_difference_seconds",
+            value: (elapsedMs / 1000).toString()
+        });
+
+        questionService.addMeta({
+            name: "time_difference_formatted",
+            value: this.formatDifferenceToTimeFormat(elapsedMs / 1000)
+        });
+
+        questionService.addMeta({
+            name: "partial_save",
+            value: "true"
+        });
+
+        this.addCommonMeta(questionService);
+
+        await questionService.save();
+    }
+
+    private addCommonMeta(questionService: QuestionService) {
         questionService.addMeta({
             name: "model",
             value: this.questionAnatomy.model
@@ -86,8 +124,6 @@ class DatabaseSummarySaving {
         if (this.questionAnatomy.options && Object.keys(this.questionAnatomy.options).length > 0) {
             questionService.setQuestionOptions(this.questionAnatomy.options);
         }
-
-        await questionService.save();
     }
 
     private calculatesEndBeginTimeDifferenceMilliseconds(): number {

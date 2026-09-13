@@ -66,6 +66,26 @@ class QuestionProcessingHelper {
         );
     };
 
+    public static saveQuestionEarly = (
+        metricLifeCycle: MetricLifeCycle,
+        questionAnatomy: QuestionAnatomy,
+        logWritter: LogConsole
+    ) => {
+        const beginMs = metricLifeCycle.getBeginTime();
+        const answerPerformance = {
+            question: questionAnatomy.question,
+            answer: "",
+            beginUnixEpochTimestamp: beginMs,
+            beginUnixEpochTimestampChunks: beginMs,
+            endUnixEpochTimestamp: beginMs,
+            bytesSize: 0,
+            totalChunks: 0
+        };
+        const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
+        databaseSummarySaving.partialSave(beginMs);
+        logWritter.log("Early partial save to database");
+    };
+
     public static getFormatter() {
         const formatter = new Intl.DateTimeFormat("en-US", {
             timeZone: "America/Sao_Paulo",

@@ -115,6 +115,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     const date = new Date();
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
+
+    QuestionProcessingHelper.saveQuestionEarly(metricLifeCycle, questionAnatomy, logWritter);
   }
 
   try {

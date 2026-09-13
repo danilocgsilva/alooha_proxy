@@ -76,6 +76,10 @@ class MetricLifeCycle {
         return chunkResponse;
     }
 
+    public getBeginTime(): number {
+        return this.beginTimeMilliseconds;
+    }
+
     public getFullAnswer() : string {
         return this.chunksAnswer.join("");
     }
