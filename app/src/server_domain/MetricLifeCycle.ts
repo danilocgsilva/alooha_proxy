@@ -3,21 +3,18 @@ import AnswerPerformance from "../types/AnswerPerformance";
 import MetricWorks from "./MetricWorks.js";
 import QuestionAnatomy from "../types/QuestionAnatomy";
 import LogImplementation from "../server_domain/LogImplementation";
+import DatabaseSummarySaving from "../server_domain/DatabaseSummarySaving";
+import { AppDataSource } from "../database/dataSource";
 
 class MetricLifeCycle {
     private beginTimeMilliseconds!: number;
-
     private beginTimeChunks: number | null = null;
-
     private endTimeMilliseconds!: number;
-
     private userIp!: string|unknown;
-
     private isBegan: boolean = false;
-
     private chunksAnswer: string[] = [];
-
     private metricWorks: MetricWorks;
+    private databaseSummarySaving: DatabaseSummarySaving | null = null;
 
     constructor(private logWritter: LogImplementation) {
         this.metricWorks = new MetricWorks(logWritter);
@@ -74,6 +71,14 @@ class MetricLifeCycle {
         }
         this.chunksAnswer.push(chunkResponse);
         return chunkResponse;
+    }
+
+    public setDatabaseSummarySaving(databaseSummarySaving: DatabaseSummarySaving) {
+        this.databaseSummarySaving = databaseSummarySaving;
+    }
+
+    public getDatabaseSummarySaving(): DatabaseSummarySaving | null {
+        return this.databaseSummarySaving;
     }
 
     public getBeginTime(): number {

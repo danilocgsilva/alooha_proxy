@@ -16,6 +16,8 @@ export function getProxyVersion(): string {
 }
 
 class DatabaseSummarySaving {
+    private savedContentId: number | null = null;
+
     constructor(
         private appDataSource: DataSource,
         private answerPerformance: AnswerPerformance,
@@ -88,7 +90,41 @@ class DatabaseSummarySaving {
 
         this.addCommonMeta(questionService);
 
-        await questionService.save();
+        this.savedContentId = await questionService.save();
+    }
+
+    public updateAnswerPerformance(answerPerformance: AnswerPerformance) {
+        this.answerPerformance = answerPerformance;
+    }
+
+    public async storeAnswerPerformance() {
+        if (this.savedContentId === null) {
+            throw new Error("partialSave must be called before storeAnswerPerformance.");
+        }
+
+        const questionService = new QuestionService(this.appDataSource);
+
+        questionService.addMeta({
+            name: "answer",
+            value: this.answerPerformance.answer
+        });
+
+        questionService.addMeta({
+            name: "end",
+            value: this.answerPerformance.endUnixEpochTimestamp.toString()
+        });
+
+        questionService.addMeta({
+            name: "time_difference_seconds",
+            value: (this.calculatesEndBeginTimeDifferenceMilliseconds() / 1000).toString()
+        });
+
+        questionService.addMeta({
+            name: "time_difference_formatted",
+            value: this.formatDifferenceToTimeFormat(this.calculatesEndBeginTimeDifferenceMilliseconds() / 1000)
+        });
+
+        await questionService.saveToContent(this.savedContentId);
     }
 
     private addCommonMeta(questionService: QuestionService) {

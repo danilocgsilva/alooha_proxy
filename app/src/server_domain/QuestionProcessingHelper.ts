@@ -53,8 +53,10 @@ class QuestionProcessingHelper {
         const performanceSummary = friendlyPerformanceSummary.getPerformance(fullAnswer);
         const performanceSummaryString = JSON.stringify(performanceSummary, null, 4);
 
-        const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
-        databaseSummarySaving.save();
+        const databaseSummarySaving = metricLifeCycle.getDatabaseSummarySaving()
+            ?? new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
+        databaseSummarySaving.updateAnswerPerformance(answerPerformance);
+        databaseSummarySaving.storeAnswerPerformance();
 
         logWritter.log("Saved to database");
 
@@ -83,6 +85,7 @@ class QuestionProcessingHelper {
         };
         const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
         databaseSummarySaving.partialSave(beginMs);
+        metricLifeCycle.setDatabaseSummarySaving(databaseSummarySaving);
         logWritter.log("Early partial save to database");
     };
 

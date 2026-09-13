@@ -120,7 +120,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 
   try {
-    // const upstreamAbortController = new AbortController();
     let upstreamAborted = false;
 
     req.on("aborted", () => {

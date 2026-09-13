@@ -48,7 +48,7 @@ class QuestionService {
         this.metas.push(newMeta);
     }
 
-    public async save() {
+    public async save(): Promise<number> {
         await this.contentRepository.save(this.content);
 
         if (this.questionOptions && Object.keys(this.questionOptions).length > 0) {
@@ -58,22 +58,36 @@ class QuestionService {
             await this.questionOptionsRepository.save(questionOptions);
         }
 
-        await this.saveMetaValue("kind", "question");
-        await this.saveMetaValue("question", this.question);
-        
-        for (let i:number = 0; i < this.metas.length; i++) {
-            await this.saveMetaValue(this.metas[i].name, this.metas[i].value)
+        await this.persistMeta(this.content, "kind", "question");
+        await this.persistMeta(this.content, "question", this.question);
+
+        for (let i: number = 0; i < this.metas.length; i++) {
+            await this.persistMeta(this.content, this.metas[i].name, this.metas[i].value);
         }
 
+        const contentId = this.content.id;
         this.question = "";
         this.questionOptions = undefined;
         this.metas = [];
+
+        return contentId;
     }
 
-    private async saveMetaValue(key: string, value: string) {
+    public async saveToContent(contentId: number): Promise<void> {
+        const content = new Content();
+        content.id = contentId;
+
+        for (let i: number = 0; i < this.metas.length; i++) {
+            await this.persistMeta(content, this.metas[i].name, this.metas[i].value);
+        }
+
+        this.metas = [];
+    }
+
+    private async persistMeta(content: Content, key: string, value: string) {
         const metaName = new MetaName();
         metaName.meta_name = key;
-        metaName.content = this.content;
+        metaName.content = content;
         await this.metaNameRepository.save(metaName);
 
         const contentValue = new LongTextMetaValue();
