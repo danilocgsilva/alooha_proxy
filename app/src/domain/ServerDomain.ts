@@ -4,6 +4,7 @@ import MetricLifeCycle from "../server_domain/MetricLifeCycle";
 import QuestionAnatomy from "../types/QuestionAnatomy";
 import { AppDataSource } from "../database/dataSource";
 import DatabaseSummarySaving from "../server_domain/DatabaseSummarySaving";
+import Conclusion from "../types/Conclusion";
 
 export default class ServerDomain {
   private finishing: boolean = false;
@@ -36,7 +37,8 @@ export default class ServerDomain {
     requestIntentString: string,
     questionAnatomy: QuestionAnatomy | null,
     totalBytes: number,
-    totalChunks: number
+    totalChunks: number,
+    conclusion: Conclusion
   ): Promise<boolean> {
     if (completed || this.finishing) {
       return completed;
@@ -53,7 +55,8 @@ export default class ServerDomain {
         questionAnatomy,
         totalBytes,
         totalChunks,
-        this.logWritter
+        this.logWritter,
+        conclusion
       );
     }
     return completed;

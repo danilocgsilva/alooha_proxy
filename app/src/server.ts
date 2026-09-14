@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import HistoryStats from "./database/services/HistoryStats.js";
 import ServerDomain from "./domain/ServerDomain.js";
 import { ModelListResponse } from "./types/ModelListResponse.js";
+import Conclusion from "./types/Conclusion.js";
 
 const app = express();
 
@@ -194,9 +195,11 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       const abortErrorName = errorName === 'AbortError';
       if (abortErrorCodeString || abortErrorName) {
         logWritter.log("Aborted by user or the client has been closed.");
+        serverDomain.finishQuestionIfNeeded(completed, requestIntentString, questionAnatomy, totalBytes, totalChunks, Conclusion.Aborted);
       } else {
         logWritter.log("OOPS! An error!");
         console.error("Stream error:", err);
+        serverDomain.finishQuestionIfNeeded(completed, requestIntentString, questionAnatomy, totalBytes, totalChunks, Conclusion.StreamError);
       }
       res.destroy(err);
     });
@@ -213,7 +216,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
           requestIntentString, 
           questionAnatomy,
           totalBytes,
-          totalChunks
+          totalChunks,
+          Conclusion.Success
         );
       }
     });
@@ -235,7 +239,8 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
           requestIntentString, 
           questionAnatomy,
           totalBytes,
-          totalChunks
+          totalChunks,
+          Conclusion.Aborted
         );
       }
     });

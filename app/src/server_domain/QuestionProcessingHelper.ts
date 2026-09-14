@@ -5,6 +5,7 @@ import MetricLifeCycle from "./MetricLifeCycle.js";
 import FriendlyPerformanceSummary from "../domain/FriendlyPerformanceSummary.js";
 import { AppDataSource } from "../database/dataSource.js";
 import DatabaseSummarySaving from "./DatabaseSummarySaving.js";
+import Conclusion from "../types/Conclusion.js";
 
 class QuestionProcessingHelper {
     public static assemblyHeader(res: express.Response, upstreamHeaders: any) {
@@ -35,7 +36,8 @@ class QuestionProcessingHelper {
         questionAnatomy: QuestionAnatomy | null,
         totalBytes: number,
         totalChunks: number,
-        logWritter: LogConsole
+        logWritter: LogConsole,
+        conclusion: Conclusion
     ) => {
         if (questionAnatomy === null) {
             throw new Error("There's no question done yet.");
@@ -56,7 +58,7 @@ class QuestionProcessingHelper {
         const databaseSummarySaving = metricLifeCycle.getDatabaseSummarySaving()
             ?? new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
         databaseSummarySaving.updateAnswerPerformance(answerPerformance);
-        await databaseSummarySaving.storeAnswerPerformance();
+        await databaseSummarySaving.storeAnswerPerformance(conclusion);
 
         logWritter.log("Saved to database");
 

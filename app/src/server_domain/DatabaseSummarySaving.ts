@@ -4,6 +4,7 @@ import QuestionService from "../database/services/QuestionService.js";
 import AnswerPerformance from "../types/AnswerPerformance.js";
 import { DataSource } from "typeorm";
 import QuestionAnatomy from "../types/QuestionAnatomy.js";
+import Conclusion from "../types/Conclusion.js";
 
 export function getProxyVersion(): string {
     const packageJsonPath = path.resolve(__dirname, "../../package.json");
@@ -80,7 +81,7 @@ class DatabaseSummarySaving {
         this.answerPerformance = answerPerformance;
     }
 
-    public async storeAnswerPerformance() {
+    public async storeAnswerPerformance(conclusion: Conclusion) {
         if (this.savedContentId === null) {
             throw new Error("partialSave must be called before storeAnswerPerformance.");
         }
@@ -105,6 +106,11 @@ class DatabaseSummarySaving {
         questionService.addMeta({
             name: "time_difference_formatted",
             value: this.formatDifferenceToTimeFormat(this.calculatesEndBeginTimeDifferenceMilliseconds() / 1000)
+        });
+
+        questionService.addMeta({
+            name: "conclusion",
+            value: conclusion
         });
 
         await questionService.saveToContent(this.savedContentId);
