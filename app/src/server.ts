@@ -209,7 +209,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       logWritter.log("End body event emitted.");
       if (!completed) {
         completed = await serverDomain.finishQuestionIfNeeded(
-          completed, 
+          completed,
           requestIntentString, 
           questionAnatomy,
           totalBytes,
@@ -231,7 +231,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
       if (!completed) {
         completed = await serverDomain.finishQuestionIfNeeded(
-          completed, 
+          completed,
           requestIntentString, 
           questionAnatomy,
           totalBytes,

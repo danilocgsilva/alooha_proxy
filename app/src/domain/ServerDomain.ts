@@ -6,6 +6,8 @@ import { AppDataSource } from "../database/dataSource";
 import DatabaseSummarySaving from "../server_domain/DatabaseSummarySaving";
 
 export default class ServerDomain {
+  private finishing: boolean = false;
+
   constructor(
     private logWritter: LogImplementation,
     private metricLifeCycle: MetricLifeCycle
@@ -36,9 +38,11 @@ export default class ServerDomain {
     totalBytes: number,
     totalChunks: number
   ): Promise<boolean> {
-    if (completed) {
+    if (completed || this.finishing) {
       return completed;
     }
+
+    this.finishing = true;
 
     completed = true;
     this.logWritter.log("===> End event reached <===");
