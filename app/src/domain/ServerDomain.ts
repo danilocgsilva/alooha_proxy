@@ -24,18 +24,18 @@ export default class ServerDomain {
       totalChunks: 0
     };
     const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
-    databaseSummarySaving.partialSave(beginMs);
+    databaseSummarySaving.partialSave();
     this.metricLifeCycle.setDatabaseSummarySaving(databaseSummarySaving);
     this.logWritter.log("Early partial save to database");
   }
 
-  public finishQuestionIfNeeded(
+  public async finishQuestionIfNeeded(
     completed: boolean,
     requestIntentString: string,
     questionAnatomy: QuestionAnatomy | null,
     totalBytes: number,
     totalChunks: number
-  ): boolean {
+  ): Promise<boolean> {
     if (completed) {
       return completed;
     }
@@ -44,7 +44,7 @@ export default class ServerDomain {
     this.logWritter.log("===> End event reached <===");
 
     if (requestIntentString === "question") {
-      QuestionProcessingHelper.finishQuestion(
+      await QuestionProcessingHelper.finishQuestion(
         this.metricLifeCycle,
         questionAnatomy,
         totalBytes,

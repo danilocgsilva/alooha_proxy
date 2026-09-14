@@ -30,7 +30,7 @@ class QuestionProcessingHelper {
         logWritter.log("==================================\n");
     }
 
-    public static finishQuestion = (
+    public static finishQuestion = async (
         metricLifeCycle: MetricLifeCycle,
         questionAnatomy: QuestionAnatomy | null,
         totalBytes: number,
@@ -56,7 +56,7 @@ class QuestionProcessingHelper {
         const databaseSummarySaving = metricLifeCycle.getDatabaseSummarySaving()
             ?? new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
         databaseSummarySaving.updateAnswerPerformance(answerPerformance);
-        databaseSummarySaving.storeAnswerPerformance();
+        await databaseSummarySaving.storeAnswerPerformance();
 
         logWritter.log("Saved to database");
 

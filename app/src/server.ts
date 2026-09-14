@@ -205,10 +205,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
     let completed = false;
 
-    body.on("end", () => {
+    body.on("end", async () => {
       logWritter.log("End body event emitted.");
       if (!completed) {
-        completed = serverDomain.finishQuestionIfNeeded(
+        completed = await serverDomain.finishQuestionIfNeeded(
           completed, 
           requestIntentString, 
           questionAnatomy,
@@ -218,7 +218,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       }
     });
 
-    res.on("close", () => {
+    res.on("close", async () => {
       if (!completed && QuestionProcessingHelper.shouldLogCancellationMessage(completed, hasStartedStreaming)) {
         logWritter.log(QuestionProcessingHelper.getRequestCancellationMessage(requestIntentString || "unknown"));
       }
@@ -230,7 +230,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
       }
 
       if (!completed) {
-        completed = serverDomain.finishQuestionIfNeeded(
+        completed = await serverDomain.finishQuestionIfNeeded(
           completed, 
           requestIntentString, 
           questionAnatomy,

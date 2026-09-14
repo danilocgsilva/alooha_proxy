@@ -61,7 +61,7 @@ class DatabaseSummarySaving {
         await questionService.save();
     }
 
-    public async partialSave(interruptedAtMs: number) {
+    public async partialSave() {
         const questionService = new QuestionService(this.appDataSource);
 
         questionService.setQuestion(this.answerPerformance.question);
@@ -69,18 +69,6 @@ class DatabaseSummarySaving {
         questionService.addMeta({
             name: "begin",
             value: this.answerPerformance.beginUnixEpochTimestamp.toString()
-        });
-
-        const elapsedMs = interruptedAtMs - this.answerPerformance.beginUnixEpochTimestamp;
-
-        questionService.addMeta({
-            name: "time_difference_seconds",
-            value: (elapsedMs / 1000).toString()
-        });
-
-        questionService.addMeta({
-            name: "time_difference_formatted",
-            value: this.formatDifferenceToTimeFormat(elapsedMs / 1000)
         });
 
         questionService.addMeta({
