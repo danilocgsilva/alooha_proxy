@@ -62,7 +62,6 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
   }
 
   if (requestIntentString === "listModels") {
-    // const upstreamAbortController = new AbortController();
     const { body } = await request(targetUrl, {
       method: req.method,
       headers,
@@ -116,7 +115,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     logWritter.log(`Your question got -> ${questionAnatomy.question.length} <- characters.`);
     logWritter.log(`===> ${formatter.format(date)}`);
 
-    QuestionProcessingHelper.saveQuestionEarly(metricLifeCycle, questionAnatomy, logWritter);
+    serverDomain.saveQuestionEarly(questionAnatomy);
   }
 
   try {
