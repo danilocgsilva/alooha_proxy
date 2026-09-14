@@ -8,3 +8,4 @@ backups/**/*
 app/logs/app.log
 .aider*
 app/logs/*
+.ssh
