@@ -71,11 +71,6 @@ class DatabaseSummarySaving {
             value: this.answerPerformance.beginUnixEpochTimestamp.toString()
         });
 
-        questionService.addMeta({
-            name: "partial_save",
-            value: "true"
-        });
-
         this.addCommonMeta(questionService);
 
         this.savedContentId = await questionService.save();
