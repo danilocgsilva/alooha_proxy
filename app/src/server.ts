@@ -62,6 +62,12 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     return res.status(200).json({message: statsData});
   }
 
+  if (requestIntentString === "server_place") {
+    const installationLocation = process.env.ALOOHA_MACHINE || "Unknown Location";
+    
+    return res.status(200).json({message: installationLocation});
+  }
+
   if (requestIntentString === "listModels") {
     const { body } = await request(targetUrl, {
       method: req.method,

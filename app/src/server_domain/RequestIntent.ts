@@ -12,6 +12,7 @@ class RequestIntent {
         "question" | 
         "option" | 
         "alooha_stats" |
+        "server_place" |
         "" {
         if (this.request.method === "OPTIONS") {
             return "option";
@@ -25,7 +26,10 @@ class RequestIntent {
         if (this.request.originalUrl === "/alooha_api/stats") {
             return "alooha_stats";
         }
-        return ""
+        if (this.request.originalUrl === "/api/server_place") {
+            return "server_place";
+        }
+        return "";
     }
 
     public getQuestion(): string {
