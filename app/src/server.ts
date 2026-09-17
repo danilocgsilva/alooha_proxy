@@ -15,7 +15,10 @@ import Conclusion from "./types/Conclusion.js";
 
 const app = express();
 
-app.use(express.raw({ type: "*/*" }));
+app.use(express.raw({ 
+    type: "*/*", 
+    limit: '256kb'
+}));
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
