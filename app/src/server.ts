@@ -12,6 +12,7 @@ import HistoryStats from "./database/services/HistoryStats.js";
 import ServerDomain from "./domain/ServerDomain.js";
 import { ModelListResponse } from "./types/ModelListResponse.js";
 import Conclusion from "./types/Conclusion.js";
+import { ChatHistoryService } from "./database/services/ChatHistoryService.js";
 
 const app = express();
 
@@ -63,6 +64,10 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
     let historyStats = new HistoryStats();
     let statsData = await historyStats.getModelCounts();
     return res.status(200).json({message: statsData});
+  }
+
+  if (requestIntentString === "chat_history") {
+    let chatHistoryService = new ChatHistoryService(AppDataSource);
   }
 
   if (requestIntentString === "server_place") {

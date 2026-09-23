@@ -13,6 +13,7 @@ class RequestIntent {
         "option" | 
         "alooha_stats" |
         "server_place" |
+        "chat_history" |
         "" {
         if (this.request.method === "OPTIONS") {
             return "option";
@@ -28,6 +29,9 @@ class RequestIntent {
         }
         if (this.request.originalUrl === "/api/server_place") {
             return "server_place";
+        }
+        if (this.request.originalUrl === "/api/chat_history") {
+            return "chat_history";
         }
         return "";
     }
