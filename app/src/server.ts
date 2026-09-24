@@ -12,6 +12,8 @@ import HistoryStats from "./database/services/HistoryStats.js";
 import ServerDomain from "./domain/ServerDomain.js";
 import { ModelListResponse } from "./types/ModelListResponse.js";
 import Conclusion from "./types/Conclusion.js";
+import ChatHistoryService from "./database/services/ChatHistoryService.js";
+import type { ChatData } from "./types/ChatData.js";
 
 const app = express();
 
@@ -67,8 +69,13 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
   if (requestIntentString === "server_place") {
     const installationLocation = process.env.ALOOHA_MACHINE || "Unknown Location";
-    
     return res.status(200).json({message: installationLocation});
+  }
+
+  if (requestIntentString === "chat_history") {
+    const chatHistoryService = new ChatHistoryService(AppDataSource);
+    const chatHistory: Array<ChatData> = chatHistoryService.getChatHistory(40);
+    return res.status(200).json({message: chatHistory});
   }
 
   if (requestIntentString === "listModels") {
