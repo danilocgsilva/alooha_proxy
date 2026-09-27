@@ -74,7 +74,7 @@ app.all(/.*/, async (req: express.Request, res: express.Response) => {
 
   if (requestIntentString === "chat_history") {
     const chatHistoryService = new ChatHistoryService(AppDataSource);
-    const chatHistory: Array<ChatData> = chatHistoryService.getChatHistory(40);
+    const chatHistory: Array<ChatData> = await chatHistoryService.getChatHistory(40);
     return res.status(200).json({message: chatHistory});
   }
 

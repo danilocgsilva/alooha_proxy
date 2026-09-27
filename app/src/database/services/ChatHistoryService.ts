@@ -13,6 +13,14 @@ export default class ChatHistoryService {
   private dataSource;
 
   public async getChatHistory(limit: number): Promise<ChatData[]> {
-
+    return [
+      {
+        uuid: "abc1245",
+        question: "Soome question",
+        answer: "The answer",
+        model: "qwen3",
+        createdAt: new Date()
+      }
+    ]
   }
 }
