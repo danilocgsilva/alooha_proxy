@@ -1,0 +1,11 @@
+{
+  "name": "feature-history-chat-service",
+  "version": "1.0.0",
+  "description": "To get the chat history, relying on a query is the most efficient way.",
+  "main": "index.js",
+  "scripts": {
+    "run": "node index.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
