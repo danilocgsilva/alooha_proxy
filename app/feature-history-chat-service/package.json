@@ -4,7 +4,7 @@
   "description": "To get the chat history, relying on a query is the most efficient way.",
   "main": "index.js",
   "scripts": {
-    "run": "node index.js"
+    "run": "node migrate_uuids.js"
   },
   "author": "",
   "license": "ISC"
