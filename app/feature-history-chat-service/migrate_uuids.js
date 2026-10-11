@@ -10,7 +10,6 @@ const client = new Client({
 });
 
 async function main() {
-  let client;
   try {
     await client.connect();
     console.log('Connected to PostgreSQL');
