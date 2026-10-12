@@ -3,9 +3,11 @@ import { Content } from "../../database/entities/Content";
 import { MetaName } from "../../database/entities/MetaName";
 import { LongTextMetaValue } from "../../database/entities/LongTextMetaValue";
 import { QuestionOptions } from "../../database/entities/QuestionOptions";
+import { IntegerMetaValue } from "../../database/entities/IntegerMetaValue";
 import { InitSchema1700000000000 } from "../../database/migrations/1700000000000-InitSchema";
 import { MetaNameSelfRelation1700000000001 } from "../../database/migrations/1700000000001-MetaNameSelfRelation";
 import { QuestionOptions1700000000002 } from "../../database/migrations/1700000000002-QuestionOptions";
+import { AddIntegerMetaValue1791829028962 } from "../../database/migrations/1791829028962-AddIntegerMetaValue";
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -14,7 +16,18 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USER ?? "postgres",
     password: process.env.DB_PASSWORD ?? "",
     database: process.env.DB_TEST_NAME ?? "alooha_proxy_test",
-    entities: [Content, MetaName, LongTextMetaValue, QuestionOptions],
-    migrations: [InitSchema1700000000000, MetaNameSelfRelation1700000000001, QuestionOptions1700000000002],
+    entities: [
+        Content, 
+        MetaName, 
+        LongTextMetaValue, 
+        QuestionOptions,
+        IntegerMetaValue
+    ],
+    migrations: [
+        InitSchema1700000000000, 
+        MetaNameSelfRelation1700000000001, 
+        QuestionOptions1700000000002,
+        AddIntegerMetaValue1791829028962
+    ],
     migrationsRun: true,
 });

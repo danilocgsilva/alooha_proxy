@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne, OneToMany } from "typeorm";
 import { Content } from "./Content";
 import { LongTextMetaValue } from "./LongTextMetaValue";
+import { IntegerMetaValue } from "./IntegerMetaValue";
 
 @Entity("meta_names")
 export class MetaName {
@@ -19,6 +20,9 @@ export class MetaName {
 
   @OneToOne(() => LongTextMetaValue, (v) => v.metaName)
   longTextMetaValue!: LongTextMetaValue;
+
+  @OneToOne(() => IntegerMetaValue, (v) => v.metaName)
+  integerMetaValue!: IntegerMetaValue;
 
   @Column({ nullable: true })
   parent_id!: number | null;
