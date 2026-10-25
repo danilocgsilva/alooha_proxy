@@ -1,4 +1,4 @@
-import { Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, OneToOne, PrimaryGeneratedColumn, Relation } from "typeorm";
 import { QuestionOptions } from "./QuestionOptions";
 
 @Entity("contents")
@@ -7,5 +7,5 @@ export class Content {
   id!: number;
 
   @OneToOne(() => QuestionOptions, (questionOptions) => questionOptions.content, { nullable: true })
-  questionOptions?: QuestionOptions | null;
+  questionOptions?: Relation<QuestionOptions> | null;
 }

@@ -86,7 +86,7 @@ describe("DatabaseSummarySaving", () => {
             relations: ["longTextMetaValue"] 
         });
         
-        expect(metaNames).toHaveLength(11);
+        expect(metaNames).toHaveLength(12);
         
         const metaNameMap = new Map(metaNames.map(meta => [meta.meta_name, meta.longTextMetaValue.string_meta_value]));
         
@@ -156,7 +156,7 @@ describe("DatabaseSummarySaving", () => {
             relations: ["longTextMetaValue"] 
         });
         
-        expect(metaNames).toHaveLength(11);
+        expect(metaNames).toHaveLength(12);
         
         const metaNameMap = new Map(metaNames.map(meta => [meta.meta_name, meta.longTextMetaValue.string_meta_value]));
         
