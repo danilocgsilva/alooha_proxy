@@ -50,6 +50,24 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Debug Specific test",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/node_modules/jest/bin/jest.js",
+            "args": [
+                "--runInBand",
+                "src/tests/database/services/ChatHistoryService.test.ts"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/**/*.js",
+                "!**/node_modules/**"
+            ],
+            "sourceMaps": true
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Debug current test file",
             "skipFiles": [
                 "<node_internals>/**"
