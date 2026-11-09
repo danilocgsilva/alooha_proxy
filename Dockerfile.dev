@@ -19,4 +19,11 @@ RUN chown -R alooha:alooha /home/alooha
 
 EXPOSE 22
 
+COPY .env /tmp/container.env
+
+RUN { echo ''; echo 'set -a'; cat /tmp/container.env; echo 'set +a'; } >> /home/alooha/.bashrc && \
+    rm /tmp/container.env && \
+    chown alooha:alooha /home/alooha/.bashrc
+
 CMD ["/bin/bash", "-c", "/usr/sbin/sshd -D"]
+
