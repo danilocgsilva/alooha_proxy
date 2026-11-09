@@ -48,7 +48,7 @@ describe("ChatHistoryService", () => {
 
     it("Basic test to its function method", async () => {
 
-        createQuestionAndAnswerEntries();
+        await createQuestionAndAnswerEntries();
 
 
         // const chatHistoryService = getChatHistoryService();
@@ -68,10 +68,11 @@ describe("ChatHistoryService", () => {
         return chatHistoryService;
     }
 
-    function createQuestionAndAnswerEntries(): void {
+    async function createQuestionAndAnswerEntries(): Promise<void> {
         const emptyLogImplementation = new EmptyLogImplementation();
         const metricLifeCycle = new MetricLifeCycle(emptyLogImplementation);
-        const serverDomain = new ServerDomain(emptyLogImplementation, metricLifeCycle);
+        metricLifeCycle.setWhenBegan();
+        const serverDomain = new ServerDomain(emptyLogImplementation, metricLifeCycle, dataSource);
         const metricWorks = new MetricWorks(emptyLogImplementation);
 
         const mockReq = {
@@ -100,7 +101,7 @@ describe("ChatHistoryService", () => {
         const requestString = mockReq.body.toString();
         const questionAnatomy = metricWorks.getAnatomy(requestString, mockReq);
 
-        serverDomain.saveQuestionEarly(questionAnatomy);
+        await serverDomain.saveQuestionEarly(questionAnatomy);
     }
 });
 

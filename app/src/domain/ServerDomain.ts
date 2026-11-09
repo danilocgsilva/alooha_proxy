@@ -5,17 +5,19 @@ import QuestionAnatomy from "../types/QuestionAnatomy";
 import { AppDataSource } from "../database/dataSource";
 import DatabaseSummarySaving from "../server_domain/DatabaseSummarySaving";
 import Conclusion from "../types/Conclusion";
+import { DataSource } from "typeorm";
 
 export default class ServerDomain {
   private finishing: boolean = false;
 
   constructor(
     private logWritter: LogImplementation,
-    private metricLifeCycle: MetricLifeCycle
+    private metricLifeCycle: MetricLifeCycle,
+    private dataSource: DataSource = AppDataSource
   ) {
   }
 
-  public saveQuestionEarly(questionAnatomy: QuestionAnatomy) {
+  public async saveQuestionEarly(questionAnatomy: QuestionAnatomy) {
     const beginMs = this.metricLifeCycle.getBeginTime();
     const answerPerformance = {
       question: questionAnatomy.question,
@@ -26,8 +28,8 @@ export default class ServerDomain {
       bytesSize: 0,
       totalChunks: 0
     };
-    const databaseSummarySaving = new DatabaseSummarySaving(AppDataSource, answerPerformance, questionAnatomy);
-    databaseSummarySaving.partialSave();
+    const databaseSummarySaving = new DatabaseSummarySaving(this.dataSource, answerPerformance, questionAnatomy);
+    await databaseSummarySaving.partialSave();
     this.metricLifeCycle.setDatabaseSummarySaving(databaseSummarySaving);
     this.logWritter.log("Early partial save to database");
   }
