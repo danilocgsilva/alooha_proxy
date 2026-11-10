@@ -121,3 +121,7 @@ This comprehensive logging enables performance analysis, audit trails, and debug
 * `options` - Additional model options as JSON (if provided, e.g., temperature, top_p)
 
 This comprehensive logging enables performance analysis, audit trails, and debugging of AI model responses through the reverse proxy. 
+
+## Migrate database
+
+Look at the package.json file to see the npm command to migrate database, both for main and for tests.
