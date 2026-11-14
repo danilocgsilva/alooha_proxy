@@ -1,0 +1,53 @@
+SELECT
+    mn.content_id
+    ,mn.meta_name
+    ,ltmv.string_meta_value
+FROM
+    long_text_meta_value ltmv
+LEFT JOIN
+    meta_names mn ON mn.id = ltmv.meta_names_id
+WHERE mn.content_id = 1752
+ORDER BY ltmv.id DESC;
+
+
+SELECT
+    mn.content_id
+    ,mn.meta_name
+    ,SUBSTR(
+        ltmv.string_meta_value,
+        1,
+        200
+    )
+FROM
+    long_text_meta_value ltmv
+LEFT JOIN
+    meta_names mn ON mn.id = ltmv.meta_names_id
+WHERE mn.content_id IN (1756, 1755)
+ORDER BY ltmv.id DESC;
+
+
+
+SELECT
+    mn.content_id
+    ,mn.meta_name
+    ,SUBSTR(
+        ltmv.string_meta_value,
+        1,
+        200
+    )
+FROM
+    long_text_meta_value ltmv
+LEFT JOIN
+    meta_names mn ON mn.id = ltmv.meta_names_id
+ORDER BY ltmv.id DESC
+LIMIT 100;
+
+
+
+SELECT
+    ltmv.id,
+    ltmv.string_meta_value
+FROM
+    long_text_meta_value ltmv
+ORDER BY id DESC
+LIMIT 100;
