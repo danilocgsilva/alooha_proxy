@@ -36,7 +36,7 @@ describe("ChatsIdsService", () => {
     });
 
     it("should return empty array when no data exists", async () => {
-        const result = await new ChatsIdsService(dataSource).getLastChatIds();
+        const result = await new ChatsIdsService(dataSource).getLastChatIds(10);
         expect(result).toHaveLength(0);
     });
 
@@ -44,7 +44,7 @@ describe("ChatsIdsService", () => {
         await seedChatId(dataSource, "chat-id-1");
         await seedChatId(dataSource, "chat-id-2");
 
-        const result = await new ChatsIdsService(dataSource).getLastChatIds();
+        const result = await new ChatsIdsService(dataSource).getLastChatIds(10);
 
         expect(result).toHaveLength(2);
         expect(result[0]).toBe("chat-id-2");
@@ -54,7 +54,7 @@ describe("ChatsIdsService", () => {
     it("should not return entries with a different meta_name", async () => {
         await seedMetaValue(dataSource, "otherId", "should-not-appear");
 
-        const result = await new ChatsIdsService(dataSource).getLastChatIds();
+        const result = await new ChatsIdsService(dataSource).getLastChatIds(10);
 
         expect(result).toHaveLength(0);
     });
@@ -64,7 +64,7 @@ describe("ChatsIdsService", () => {
             await seedChatId(dataSource, `chat-id-${i}`);
         }
 
-        const result = await new ChatsIdsService(dataSource).getLastChatIds();
+        const result = await new ChatsIdsService(dataSource).getLastChatIds(10);
 
         expect(result).toHaveLength(10);
     });

@@ -5,7 +5,7 @@ import { DataSource } from "typeorm";
 export default class ChatsIdsService {
     constructor(private dataSource: DataSource = AppDataSource) {}
 
-    async getLastChatIds(): Promise<string[]> {
+    async getLastChatIds(limit: number): Promise<string[]> {
         const rows = await this.dataSource
             .getRepository(LongTextMetaValue)
             .createQueryBuilder("ltmv")
@@ -14,7 +14,7 @@ export default class ChatsIdsService {
             .where("mn.meta_name = :name", { name: "chatId" })
             .distinct(true)
             .orderBy("ltmv.id", "DESC")
-            .limit(10)
+            .limit(limit)
             .getMany();
 
         return rows.map((r) => r.string_meta_value);
